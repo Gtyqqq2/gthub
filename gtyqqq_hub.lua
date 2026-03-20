@@ -353,7 +353,7 @@ flyLockToggle.MouseButton1Click:Connect(function()
     flyLockToggle.BackgroundColor3 = flyEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 
     if flyEnabled and hrp then
-        lockCF = hrp.CFrame + Vector3.new(0,30,0)
+        lockCF = hrp.CFrame + Vector3.new(0,35,0)
     else
         lockCF = nil
     end
@@ -374,7 +374,7 @@ player.CharacterAdded:Connect(function()
     updateHRP()
 
     if flyEnabled and hrp then
-        lockCF = hrp.CFrame + Vector3.new(0,30,0)
+        lockCF = hrp.CFrame + Vector3.new(0,35,0)
     end
 end)
 
