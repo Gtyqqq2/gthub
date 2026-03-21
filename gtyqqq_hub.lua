@@ -1,5 +1,5 @@
 --[[
-👾 gtyqqq Hub 👾 - FINAL PERFECT MAX (FAST ATTACK + TELEPORT + FLY LOCK 30 STUDS)
+👾 gtyqqq Hub 👾 - complete ( fly lock / pull monster / kill aura ) wait for update auto upgrade and rebirth
 ]]
 
 local Players = game:GetService("Players")
