@@ -1,5 +1,6 @@
 --[[
-👾 gtyqqq Hub 👾 - complete ( fly lock / pull monster / kill aura ) wait for update auto upgrade and rebirth
+👾 gtyqqq Hub 👾 - complete ( fly lock / pull monster / kill aura ) 
+wait for update auto upgrade and rebirth
 ]]
 
 local Players = game:GetService("Players")
