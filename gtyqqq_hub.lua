@@ -414,7 +414,7 @@ pullToggle.MouseButton1Click:Connect(function()
     pullToggle.BackgroundColor3 = pullEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 end)
 
--- 🔥 LOOP เดียว (ไม่ชนระบบอื่น)
+-- 🔥 LOOP ดึงมอน
 task.spawn(function()
     while task.wait(0.1) do
         if pullEnabled and hrp then
@@ -518,4 +518,48 @@ icon.MouseButton1Click:Connect(function()
     end
 end)
 
+--================ AUTO MENU (เพิ่มใหม่) =================--
+
+local btnAuto = makeButton(menu,"Auto",125)
+
+local pageAuto = Instance.new("Frame", pages)
+pageAuto.Size = UDim2.new(1,0,1,0)
+pageAuto.BackgroundTransparency = 1
+pageAuto.Visible = false
+
+local autoFrame = Instance.new("Frame", pageAuto)
+autoFrame.Size = UDim2.new(0.9,0,0,40)
+autoFrame.Position = UDim2.new(0.05,0,0,10)
+autoFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", autoFrame)
+
+local autoLabel = Instance.new("TextLabel", autoFrame)
+autoLabel.Size = UDim2.new(1,0,1,0)
+autoLabel.BackgroundTransparency = 1
+autoLabel.Text = "Coming Soon"
+autoLabel.TextColor3 = Color3.new(1,1,1)
+autoLabel.Font = Enum.Font.GothamBold
+autoLabel.TextSize = 16
+
+--================ FIX MENU =================--
+
+btnAuto.MouseButton1Click:Connect(function()
+    pageAura.Visible = false
+    pageTeleport.Visible = false
+    pageAuto.Visible = true
+end)
+
+btnTeleport.MouseButton1Click:Connect(function()
+    pageAura.Visible = false
+    pageAuto.Visible = false
+    pageTeleport.Visible = true
+end)
+
+btnAura.MouseButton1Click:Connect(function()
+    pageTeleport.Visible = false
+    pageAuto.Visible = false
+    pageAura.Visible = true
+end)
+
 print("👾 FINAL PERFECT MAX LOADED 🔥")
+
