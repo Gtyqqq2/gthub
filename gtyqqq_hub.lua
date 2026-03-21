@@ -381,7 +381,7 @@ end)
 --================ MONSTER PULL =================--
 local pullEnabled = false
 local pullDistance = 22
-local pullRange = 200
+local pullRange = 150
 
 local pullFrame = Instance.new("Frame", pageTeleport)
 pullFrame.Size = UDim2.new(0.9,0,0,40)
