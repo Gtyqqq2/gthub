@@ -91,7 +91,7 @@ Instance.new("UICorner", flyLockFrame)
 local flyLockLabel = Instance.new("TextLabel", flyLockFrame)
 flyLockLabel.Size = UDim2.new(0.7,0,1,0)
 flyLockLabel.Position = UDim2.new(0,0,0,0)
-flyLockLabel.Text = "Fly Lock 35 studs"
+flyLockLabel.Text = "Fly Lock(careful)"
 flyLockLabel.TextColor3 = Color3.fromRGB(255,255,255)
 flyLockLabel.BackgroundTransparency = 1
 flyLockLabel.Font = Enum.Font.GothamBold
