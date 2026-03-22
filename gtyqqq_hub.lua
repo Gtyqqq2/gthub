@@ -528,19 +528,63 @@ pageAuto.Size = UDim2.new(1,0,1,0)
 pageAuto.BackgroundTransparency = 1
 pageAuto.Visible = false
 
-local autoFrame = Instance.new("Frame", pageAuto)
-autoFrame.Size = UDim2.new(0.9,0,0,40)
-autoFrame.Position = UDim2.new(0.05,0,0,10)
-autoFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
-Instance.new("UICorner", autoFrame)
+--================ AUTO SKILL GUI =================--
+-- ใช้ GUI แบบเก่าสวย + Auto Skill กดติดจริง
+local autoSkillLabel = Instance.new("TextLabel", pageAuto)
+autoSkillLabel.Size = UDim2.new(1,0,0,25)
+autoSkillLabel.Position = UDim2.new(0,0,0,10)
+autoSkillLabel.Text = "auto skill"
+autoSkillLabel.TextColor3 = Color3.fromRGB(255,255,255)
+autoSkillLabel.BackgroundTransparency = 1
+autoSkillLabel.Font = Enum.Font.GothamBold
+autoSkillLabel.TextSize = 16
+autoSkillLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-local autoLabel = Instance.new("TextLabel", autoFrame)
-autoLabel.Size = UDim2.new(1,0,1,0)
-autoLabel.BackgroundTransparency = 1
-autoLabel.Text = "Coming Soon"
-autoLabel.TextColor3 = Color3.new(1,1,1)
-autoLabel.Font = Enum.Font.GothamBold
-autoLabel.TextSize = 16
+local buttonsFrame = Instance.new("Frame", pageAuto)
+buttonsFrame.Size = UDim2.new(1,0,0,40)
+buttonsFrame.Position = UDim2.new(0,0,0,40)
+buttonsFrame.BackgroundTransparency = 1
+
+local skills = {"Q","E","R","F"}
+local skillToggles = {}
+
+for i, skill in ipairs(skills) do
+    local btn = Instance.new("TextButton", buttonsFrame)
+    btn.Size = UDim2.new(0.2, -5,1,0)
+    btn.Position = UDim2.new(0.2*(i-1), 5, 0,0)
+    btn.Text = skill.." OFF"
+    btn.BackgroundColor3 = Color3.fromRGB(100,100,100)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    Instance.new("UICorner", btn)
+    skillToggles[skill] = false
+
+    btn.MouseButton1Click:Connect(function()
+        skillToggles[skill] = not skillToggles[skill]
+        btn.Text = skill..(skillToggles[skill] and " ON" or " OFF")
+        btn.BackgroundColor3 = skillToggles[skill] and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+    end)
+end
+
+--================ AUTO SKILL LOOP =================--
+task.spawn(function()
+    local VirtualInput = game:GetService("VirtualInputManager") -- สำหรับกดสกิลจริง
+    while task.wait(0.1) do
+        local char = player.Character
+        if char then
+            for skill, enabled in pairs(skillToggles) do
+                if enabled then
+                    pcall(function()
+                        -- กดปุ่มจริง
+                        VirtualInput:SendKeyEvent(true, skill, false, game)
+                        VirtualInput:SendKeyEvent(false, skill, false, game)
+                    end)
+                end
+            end
+        end
+    end
+end)
 
 --================ FIX MENU =================--
 
@@ -563,4 +607,3 @@ btnAura.MouseButton1Click:Connect(function()
 end)
 
 print("👾 FINAL PERFECT MAX LOADED 🔥")
-
