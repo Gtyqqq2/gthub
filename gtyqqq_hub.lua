@@ -1,5 +1,5 @@
 --[[
-👾 gtyqqq Hub 👾 - complete ( fly lock / pull monster / kill aura ) 
+👾 gtyqqq Hub 👾 - complete ( fly lock / pull monster / kill aura / auto skill ) 
 wait for update auto upgrade and rebirth
 ]]
 
