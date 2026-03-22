@@ -570,7 +570,7 @@ end
 --================ AUTO SKILL LOOP =================--
 task.spawn(function()
     local VirtualInput = game:GetService("VirtualInputManager") -- สำหรับกดสกิลจริง
-    while task.wait(0.1) do
+    while task.wait(1) do
         local char = player.Character
         if char then
             for skill, enabled in pairs(skillToggles) do
