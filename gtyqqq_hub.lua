@@ -348,18 +348,20 @@ end)
 
 local flyEnabled = false
 local high = 35
+local baseCF = nil
 local lockCF = nil
 
--- UI (ใช้ของเดิม)
 flyLockToggle.MouseButton1Click:Connect(function()
     flyEnabled = not flyEnabled
     flyLockToggle.Text = flyEnabled and "ON" or "OFF"
     flyLockToggle.BackgroundColor3 = flyEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 
     if flyEnabled and hrp then
-        lockCF = hrp.CFrame + Vector3.new(0,high,0)
+        baseCF = hrp.CFrame
+        lockCF = baseCF + Vector3.new(0,high,0)
     else
         lockCF = nil
+        baseCF = nil
     end
 end)
 
@@ -411,8 +413,8 @@ local function setHigh(n)
 
     highBox.Text = tostring(n)
 
-    if flyEnabled and hrp then
-        lockCF = hrp.CFrame + Vector3.new(0,high,0)
+    if flyEnabled and baseCF then
+        lockCF = baseCF + Vector3.new(0,high,0)
     end
 end
 
@@ -469,7 +471,8 @@ player.CharacterAdded:Connect(function()
     updateHRP()
 
     if flyEnabled and hrp then
-        lockCF = hrp.CFrame + Vector3.new(0,high,0)
+        baseCF = hrp.CFrame
+        lockCF = baseCF + Vector3.new(0,high,0)
     end
 end)
 --================ MONSTER PULL =================--
@@ -626,7 +629,7 @@ pageAuto.Visible = false
 -- ใช้ GUI แบบเก่าสวย + Auto Skill กดติดจริง
 local autoSkillLabel = Instance.new("TextLabel", pageAuto)
 autoSkillLabel.Size = UDim2.new(1,0,0,25)
-autoSkillLabel.Position = UDim2.new(0,0,0,10)
+autoSkillLabel.Position = UDim2.new(0,50,0,10)
 autoSkillLabel.Text = "auto skill"
 autoSkillLabel.TextColor3 = Color3.fromRGB(255,255,255)
 autoSkillLabel.BackgroundTransparency = 1
