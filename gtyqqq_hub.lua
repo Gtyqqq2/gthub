@@ -556,7 +556,7 @@ end)
 local iconGui = Instance.new("ScreenGui", game.CoreGui)
 local icon = Instance.new("ImageButton", iconGui)
 icon.Size = UDim2.new(0,80,0,40)
-icon.Position = UDim2.new(0,20,0.5,-20)
+icon.Position = UDim2.new(0,100,0.5,-295)
 icon.BackgroundColor3 = Color3.fromRGB(30,30,30)
 icon.BackgroundTransparency = 0.1
 icon.Image = "rbxassetid://7072719338"
