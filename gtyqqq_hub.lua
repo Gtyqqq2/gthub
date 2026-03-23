@@ -345,27 +345,121 @@ btnAura.MouseButton1Click:Connect(function()
 end)
 
 --================ FLY LOCK =================--
+
 local flyEnabled = false
+local high = 35
 local lockCF = nil
 
+-- UI (ใช้ของเดิม)
 flyLockToggle.MouseButton1Click:Connect(function()
     flyEnabled = not flyEnabled
     flyLockToggle.Text = flyEnabled and "ON" or "OFF"
     flyLockToggle.BackgroundColor3 = flyEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 
     if flyEnabled and hrp then
-        lockCF = hrp.CFrame + Vector3.new(0,35,0)
+        lockCF = hrp.CFrame + Vector3.new(0,high,0)
     else
         lockCF = nil
     end
 end)
+
+--================ HIGH UI =================--
+
+local highLabel = Instance.new("TextLabel", pageTeleport)
+highLabel.Size = UDim2.new(1,0,0,25)
+highLabel.Position = UDim2.new(0,0,0,50)
+highLabel.Text = "High: 35"
+highLabel.TextColor3 = Color3.fromRGB(0,170,255)
+highLabel.BackgroundTransparency = 1
+
+local highTrack = Instance.new("Frame", pageTeleport)
+highTrack.Size = UDim2.new(0.6,0,0,12)
+highTrack.Position = UDim2.new(0.05,0,0,75)
+highTrack.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner", highTrack)
+
+local highFill = Instance.new("Frame", highTrack)
+highFill.Size = UDim2.new(0,0,1,0)
+highFill.BackgroundColor3 = Color3.fromRGB(0,170,255)
+Instance.new("UICorner", highFill)
+
+local highKnob = Instance.new("Frame", highTrack)
+highKnob.Size = UDim2.new(0,18,0,18)
+highKnob.AnchorPoint = Vector2.new(0.5,0.5)
+highKnob.Position = UDim2.new(0,0,0.5,0)
+highKnob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+Instance.new("UICorner", highKnob)
+
+local highBox = Instance.new("TextBox", pageTeleport)
+highBox.Size = UDim2.new(0.25,-5,0,25)
+highBox.Position = UDim2.new(0.7,0,0,68)
+highBox.Text = "35"
+highBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
+highBox.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", highBox)
+
+--================ LOGIC =================--
+
+local function setHigh(n)
+    n = math.clamp(n,10,50)
+    high = n
+    highLabel.Text = "High: "..n
+
+    local rel = (n-10)/40
+    highKnob.Position = UDim2.new(rel,0,0.5,0)
+    highFill.Size = UDim2.new(rel,0,1,0)
+
+    highBox.Text = tostring(n)
+
+    if flyEnabled and hrp then
+        lockCF = hrp.CFrame + Vector3.new(0,high,0)
+    end
+end
+
+local draggingHigh = false
+
+local function updateHighFromPos(x)
+    local rel = math.clamp((x - highTrack.AbsolutePosition.X) / highTrack.AbsoluteSize.X, 0, 1)
+    setHigh(math.floor(10 + rel * 40))
+end
+
+local function startDrag(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingHigh = true
+        updateHighFromPos(i.Position.X)
+    end
+end
+
+highTrack.InputBegan:Connect(startDrag)
+highFill.InputBegan:Connect(startDrag)
+highKnob.InputBegan:Connect(startDrag)
+
+UserInputService.InputChanged:Connect(function(i)
+    if draggingHigh and i.UserInputType == Enum.UserInputType.MouseMovement then
+        updateHighFromPos(i.Position.X)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingHigh = false
+    end
+end)
+
+highBox.FocusLost:Connect(function()
+    local n = tonumber(highBox.Text) or high
+    setHigh(n)
+end)
+
+setHigh(35)
+
+--================ APPLY =================--
 
 RunService.RenderStepped:Connect(function()
     if flyEnabled and hrp and lockCF then
         hrp.AssemblyLinearVelocity = Vector3.zero
         hrp.AssemblyAngularVelocity = Vector3.zero
         hrp.Velocity = Vector3.zero
-
         hrp.CFrame = lockCF
     end
 end)
@@ -375,18 +469,18 @@ player.CharacterAdded:Connect(function()
     updateHRP()
 
     if flyEnabled and hrp then
-        lockCF = hrp.CFrame + Vector3.new(0,35,0)
+        lockCF = hrp.CFrame + Vector3.new(0,high,0)
     end
 end)
-
 --================ MONSTER PULL =================--
+
 local pullEnabled = false
 local pullDistance = 21
 local pullRange = 150
 
 local pullFrame = Instance.new("Frame", pageTeleport)
 pullFrame.Size = UDim2.new(0.9,0,0,40)
-pullFrame.Position = UDim2.new(0.05,0,0,60)
+pullFrame.Position = UDim2.new(0.05,0,0,105)
 pullFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
 Instance.new("UICorner", pullFrame)
 
