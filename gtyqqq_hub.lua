@@ -45,7 +45,7 @@ header.TextSize = 18
 
 --================ MENU =================--
 local menu = Instance.new("Frame", frame)
-menu.Size = UDim2.new(0,85,1,-40)
+menu.Size = UDim2.new(0,85,1,-65)
 menu.Position = UDim2.new(0,10,0,40)
 menu.BackgroundColor3 = Color3.fromRGB(25,25,25)
 menu.BackgroundTransparency = 0.2
