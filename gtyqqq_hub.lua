@@ -353,17 +353,6 @@ toggle.MouseButton1Click:Connect(function()
     toggle.BackgroundColor3 = enabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(50,50,50)
 end)
 
---================ TELEPORT BUTTON =================--
-btnTeleport.MouseButton1Click:Connect(function()
-    pageAura.Visible = false
-    pageTeleport.Visible = true
-end)
-
-btnAura.MouseButton1Click:Connect(function()
-    pageTeleport.Visible = false
-    pageAura.Visible = true
-end)
-
 --================ FLY LOCK =================--
 local flyEnabled = false
 local high = 35
