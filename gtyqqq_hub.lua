@@ -791,4 +791,4 @@ btnSetting.MouseButton1Click:Connect(function()
     pageSetting.Visible = true
 end)
 
-print("👾 FINAL PERFECT MAX LOADED 🔥")
+print("🌌 gtyqqq hub finish 🌌")
