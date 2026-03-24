@@ -485,7 +485,7 @@ local pullRange = 150
 
 local pullFrame = Instance.new("Frame", pageTeleport)
 pullFrame.Size = UDim2.new(0.9,0,0,40)
-pullFrame.Position = UDim2.new(0.05,0,0,105)
+pullFrame.Position = UDim2.new(0.05,0,0,102)
 pullFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
 Instance.new("UICorner", pullFrame)
 
@@ -513,6 +513,90 @@ pullToggle.MouseButton1Click:Connect(function()
     pullToggle.Text = pullEnabled and "ON" or "OFF"
     pullToggle.BackgroundColor3 = pullEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 end)
+
+local distLabel = Instance.new("TextLabel", pageTeleport)
+distLabel.Size = UDim2.new(1,0,0,25)
+distLabel.Position = UDim2.new(0,0,0,142)
+distLabel.Text = "Distance: 20"
+distLabel.TextColor3 = Color3.fromRGB(255,105,180)
+distLabel.BackgroundTransparency = 1
+distLabel.Font = Enum.Font.Gotham
+distLabel.TextSize = 12
+
+local distTrack = Instance.new("Frame", pageTeleport)
+distTrack.Size = UDim2.new(0.6,0,0,12)
+distTrack.Position = UDim2.new(0.05,0,0,165)
+distTrack.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner", distTrack)
+
+local distFill = Instance.new("Frame", distTrack)
+distFill.Size = UDim2.new(0,0,1,0)
+distFill.BackgroundColor3 = Color3.fromRGB(255,105,180)
+Instance.new("UICorner", distFill)
+
+local distKnob = Instance.new("Frame", distTrack)
+distKnob.Size = UDim2.new(0,18,0,18)
+distKnob.AnchorPoint = Vector2.new(0.5,0.5)
+distKnob.Position = UDim2.new(0,0,0.5,0)
+distKnob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+Instance.new("UICorner", distKnob)
+
+local distBox = Instance.new("TextBox", pageTeleport)
+distBox.Size = UDim2.new(0.25,-5,0,25)
+distBox.Position = UDim2.new(0.7,0,0,158)
+distBox.Text = "20"
+distBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
+distBox.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", distBox)
+
+local function setPullDistance(n)
+    n = math.clamp(n,10,30)
+    pullDistance = n
+    distLabel.Text = "Distance: "..n
+
+    local rel = (n-10)/20
+    distKnob.Position = UDim2.new(rel,0,0.5,0)
+    distFill.Size = UDim2.new(rel,0,1,0)
+
+    distBox.Text = tostring(n)
+end
+
+local draggingDist = false
+
+local function updateDistFromPos(x)
+    local rel = math.clamp((x - distTrack.AbsolutePosition.X) / distTrack.AbsoluteSize.X, 0, 1)
+    setPullDistance(math.floor(10 + rel * 20))
+end
+
+local function startDistDrag(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingDist = true
+        updateDistFromPos(i.Position.X)
+    end
+end
+
+distTrack.InputBegan:Connect(startDistDrag)
+distFill.InputBegan:Connect(startDistDrag)
+distKnob.InputBegan:Connect(startDistDrag)
+
+UserInputService.InputChanged:Connect(function(i)
+    if draggingDist and i.UserInputType == Enum.UserInputType.MouseMovement then
+        updateDistFromPos(i.Position.X)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingDist = false
+    end
+end)
+
+distBox.FocusLost:Connect(function()
+    local n = tonumber(distBox.Text) or pullDistance
+    setPullDistance(n)
+end)
+
+setPullDistance(20)
 
 -- 🔥 LOOP ดึงมอน
 task.spawn(function()
