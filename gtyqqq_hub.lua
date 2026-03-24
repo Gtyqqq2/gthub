@@ -480,7 +480,7 @@ end)
 --================ MONSTER PULL =================--
 
 local pullEnabled = false
-local pullDistance = 21
+local pullDistance = 20
 local pullRange = 150
 
 local pullFrame = Instance.new("Frame", pageTeleport)
