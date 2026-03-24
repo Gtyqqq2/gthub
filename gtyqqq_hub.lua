@@ -46,28 +46,36 @@ header.Font = Enum.Font.GothamBold
 header.TextSize = 18
 
 --================ MENU =================--
-local menu = Instance.new("Frame", frame)
+local menu = Instance.new("ScrollingFrame", frame)
 menu.Size = UDim2.new(0,85,1,-65)
 menu.Position = UDim2.new(0,10,0,40)
 menu.BackgroundColor3 = Color3.fromRGB(25,25,25)
 menu.BackgroundTransparency = 0.2
 Instance.new("UICorner", menu)
 
-local function makeButton(parent, text, y)
-    local b = Instance.new("TextButton", parent)
-    b.Size = UDim2.new(0.9,0,0,45)
-    b.Position = UDim2.new(0.05,0,0,y)
+menu.CanvasSize = UDim2.new(0,0,0,300) 
+menu.ScrollBarThickness = 6
+menu.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+menu.ScrollBarImageColor3 = Color3.fromRGB(180,180,180)
+
+local function makeButton(parent, text, yOffset)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0.9, 0, 0, 45)
+    b.Position = UDim2.new(0.05, 0, 0, yOffset)
     b.Text = text
-    b.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    b.TextColor3 = Color3.new(1,1,1)
+    b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    b.TextColor3 = Color3.new(1, 1, 1)
     b.Font = Enum.Font.GothamBold
     b.TextSize = 14
+    b.Parent = parent
     Instance.new("UICorner", b)
     return b
 end
 
 local btnAura = makeButton(menu,"Aura",15)
 local btnTeleport = makeButton(menu,"Teleport",70)
+local btnAuto = makeButton(menu,"Auto",125)
+local btnSetting = makeButton(menu,"Setting",180)
 
 --================ PAGE =================--
 local pages = Instance.new("Frame", frame)
@@ -83,6 +91,16 @@ local pageTeleport = Instance.new("Frame", pages)
 pageTeleport.Size = UDim2.new(1,0,1,0)
 pageTeleport.BackgroundTransparency = 1
 pageTeleport.Visible = false
+
+local pageAuto = Instance.new("Frame", pages)
+pageAuto.Size = UDim2.new(1,0,1,0)
+pageAuto.BackgroundTransparency = 1
+pageAuto.Visible = false
+
+local pageSetting = Instance.new("Frame", pages)
+pageSetting.Size = UDim2.new(1,0,1,0)
+pageSetting.BackgroundTransparency = 1
+pageSetting.Visible = false
 
 --================ FLY LOCK UI =================--
 local flyLockFrame = Instance.new("Frame", pageTeleport)
@@ -347,7 +365,6 @@ btnAura.MouseButton1Click:Connect(function()
 end)
 
 --================ FLY LOCK =================--
-
 local flyEnabled = false
 local high = 35
 local baseCF = nil
@@ -368,7 +385,6 @@ flyLockToggle.MouseButton1Click:Connect(function()
 end)
 
 --================ HIGH UI =================--
-
 local highLabel = Instance.new("TextLabel", pageTeleport)
 highLabel.Size = UDim2.new(1,0,0,25)
 highLabel.Position = UDim2.new(0,0,0,50)
@@ -403,7 +419,6 @@ highBox.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", highBox)
 
 --================ LOGIC =================--
-
 local function setHigh(n)
     n = math.clamp(n,10,50)
     high = n
@@ -458,7 +473,6 @@ end)
 setHigh(35)
 
 --================ APPLY =================--
-
 RunService.RenderStepped:Connect(function()
     if flyEnabled and hrp and lockCF then
         hrp.AssemblyLinearVelocity = Vector3.zero
@@ -477,8 +491,8 @@ player.CharacterAdded:Connect(function()
         lockCF = baseCF + Vector3.new(0,high,0)
     end
 end)
---================ MONSTER PULL =================--
 
+--================ MONSTER PULL =================--
 local pullEnabled = false
 local pullDistance = 20
 local pullRange = 150
@@ -638,6 +652,63 @@ task.spawn(function()
     end
 end)
 
+--================ AUTO SKILL GUI =================--
+local autoSkillLabel = Instance.new("TextLabel", pageAuto)
+autoSkillLabel.Size = UDim2.new(1,0,0,25)
+autoSkillLabel.Position = UDim2.new(0,50,0,10)
+autoSkillLabel.Text = "auto skill"
+autoSkillLabel.TextColor3 = Color3.fromRGB(255,255,255)
+autoSkillLabel.BackgroundTransparency = 1
+autoSkillLabel.Font = Enum.Font.GothamBold
+autoSkillLabel.TextSize = 16
+autoSkillLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local buttonsFrame = Instance.new("Frame", pageAuto)
+buttonsFrame.Size = UDim2.new(1,0,0,40)
+buttonsFrame.Position = UDim2.new(0,0,0,40)
+buttonsFrame.BackgroundTransparency = 1
+
+local skills = {"Q","E","R","F"}
+local skillToggles = {}
+
+for i, skill in ipairs(skills) do
+    local btn = Instance.new("TextButton", buttonsFrame)
+    btn.Size = UDim2.new(0.2, -5,1,0)
+    btn.Position = UDim2.new(0.2*(i-1), 5, 0,0)
+    btn.Text = skill.." OFF"
+    btn.BackgroundColor3 = Color3.fromRGB(100,100,100)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    Instance.new("UICorner", btn)
+    skillToggles[skill] = false
+
+    btn.MouseButton1Click:Connect(function()
+        skillToggles[skill] = not skillToggles[skill]
+        btn.Text = skill..(skillToggles[skill] and " ON" or " OFF")
+        btn.BackgroundColor3 = skillToggles[skill] and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+    end)
+end
+
+--================ AUTO SKILL LOOP =================--
+task.spawn(function()
+    local VirtualInput = game:GetService("VirtualInputManager") -- สำหรับกดสกิลจริง
+    while task.wait(0.1) do
+        local char = player.Character
+        if char then
+            for skill, enabled in pairs(skillToggles) do
+                if enabled then
+                    pcall(function()
+                        -- กดปุ่มจริง
+                        VirtualInput:SendKeyEvent(true, skill, false, game)
+                        VirtualInput:SendKeyEvent(false, skill, false, game)
+                    end)
+                end
+            end
+        end
+    end
+end)
+
 --================ ICON =================--
 local iconGui = Instance.new("ScreenGui", game.CoreGui)
 local icon = Instance.new("ImageButton", iconGui)
@@ -702,91 +773,33 @@ icon.MouseButton1Click:Connect(function()
     end
 end)
 
---================ AUTO MENU (เพิ่มใหม่) =================--
-
-local btnAuto = makeButton(menu,"Auto",125)
-
-local pageAuto = Instance.new("Frame", pages)
-pageAuto.Size = UDim2.new(1,0,1,0)
-pageAuto.BackgroundTransparency = 1
-pageAuto.Visible = false
-
---================ AUTO SKILL GUI =================--
--- ใช้ GUI แบบเก่าสวย + Auto Skill กดติดจริง
-local autoSkillLabel = Instance.new("TextLabel", pageAuto)
-autoSkillLabel.Size = UDim2.new(1,0,0,25)
-autoSkillLabel.Position = UDim2.new(0,50,0,10)
-autoSkillLabel.Text = "auto skill"
-autoSkillLabel.TextColor3 = Color3.fromRGB(255,255,255)
-autoSkillLabel.BackgroundTransparency = 1
-autoSkillLabel.Font = Enum.Font.GothamBold
-autoSkillLabel.TextSize = 16
-autoSkillLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local buttonsFrame = Instance.new("Frame", pageAuto)
-buttonsFrame.Size = UDim2.new(1,0,0,40)
-buttonsFrame.Position = UDim2.new(0,0,0,40)
-buttonsFrame.BackgroundTransparency = 1
-
-local skills = {"Q","E","R","F"}
-local skillToggles = {}
-
-for i, skill in ipairs(skills) do
-    local btn = Instance.new("TextButton", buttonsFrame)
-    btn.Size = UDim2.new(0.2, -5,1,0)
-    btn.Position = UDim2.new(0.2*(i-1), 5, 0,0)
-    btn.Text = skill.." OFF"
-    btn.BackgroundColor3 = Color3.fromRGB(100,100,100)
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 14
-    Instance.new("UICorner", btn)
-    skillToggles[skill] = false
-
-    btn.MouseButton1Click:Connect(function()
-        skillToggles[skill] = not skillToggles[skill]
-        btn.Text = skill..(skillToggles[skill] and " ON" or " OFF")
-        btn.BackgroundColor3 = skillToggles[skill] and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
-    end)
-end
-
---================ AUTO SKILL LOOP =================--
-task.spawn(function()
-    local VirtualInput = game:GetService("VirtualInputManager") -- สำหรับกดสกิลจริง
-    while task.wait(0.1) do
-        local char = player.Character
-        if char then
-            for skill, enabled in pairs(skillToggles) do
-                if enabled then
-                    pcall(function()
-                        -- กดปุ่มจริง
-                        VirtualInput:SendKeyEvent(true, skill, false, game)
-                        VirtualInput:SendKeyEvent(false, skill, false, game)
-                    end)
-                end
-            end
-        end
-    end
+--================ FIX MENU =================--
+btnAura.MouseButton1Click:Connect(function()
+    pageAura.Visible = true
+    pageTeleport.Visible = false
+    pageAuto.Visible = false
+    pageSetting.Visible = false
 end)
 
---================ FIX MENU =================--
+btnTeleport.MouseButton1Click:Connect(function()
+    pageAura.Visible = false
+    pageTeleport.Visible = true
+    pageAuto.Visible = false
+    pageSetting.Visible = false
+end)
 
 btnAuto.MouseButton1Click:Connect(function()
     pageAura.Visible = false
     pageTeleport.Visible = false
     pageAuto.Visible = true
+    pageSetting.Visible = false
 end)
 
-btnTeleport.MouseButton1Click:Connect(function()
+btnSetting.MouseButton1Click:Connect(function()
     pageAura.Visible = false
-    pageAuto.Visible = false
-    pageTeleport.Visible = true
-end)
-
-btnAura.MouseButton1Click:Connect(function()
     pageTeleport.Visible = false
     pageAuto.Visible = false
-    pageAura.Visible = true
+    pageSetting.Visible = true
 end)
 
 print("👾 FINAL PERFECT MAX LOADED 🔥")
