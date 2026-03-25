@@ -417,7 +417,12 @@ highBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
 highBox.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", highBox)
 
---================ HIGH LOGIC =================--
+--================ VALUES =================--
+local high = 35
+local targetY = nil -- 🔥 ตัวสำคัญ (ใช้กับ PART 2)
+local draggingHigh = false
+
+--================ FUNCTION =================--
 local function setHigh(n)
     n = math.clamp(n,10,50)
     high = n
@@ -429,13 +434,13 @@ local function setHigh(n)
 
     highBox.Text = tostring(n)
 
-    if flyEnabled and baseCF then
-        lockCF = baseCF + Vector3.new(0,high,0)
+    -- 🔥 อัปเดตความสูงทันที (แก้บัคสไลด์)
+    if flyEnabled and hrp then
+        targetY = hrp.Position.Y + high
     end
 end
 
-local draggingHigh = false
-
+--================ DRAG =================--
 local function updateHighFromPos(x)
     local rel = math.clamp((x - highTrack.AbsolutePosition.X) / highTrack.AbsoluteSize.X, 0, 1)
     setHigh(math.floor(10 + rel * 40))
@@ -471,23 +476,49 @@ end)
 
 setHigh(35)
 
---================ APPLY =================--
-RunService.RenderStepped:Connect(function()
-    if flyEnabled and hrp and lockCF then
-        hrp.AssemblyLinearVelocity = Vector3.zero
-        hrp.AssemblyAngularVelocity = Vector3.zero
-        hrp.Velocity = Vector3.zero
-        hrp.CFrame = lockCF
+--================ FLY SYSTEM (ABSOLUTE HEIGHT) =================--
+local flyEnabled = false
+local baseY = nil -- 🔥 จุดสำคัญ
+
+flyLockToggle.MouseButton1Click:Connect(function()
+    flyEnabled = not flyEnabled
+    flyLockToggle.Text = flyEnabled and "ON" or "OFF"
+    flyLockToggle.BackgroundColor3 = flyEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+
+    if flyEnabled and hrp then
+        baseY = hrp.Position.Y -- 🔥 จำพื้นตอนเปิด
+    else
+        baseY = nil
     end
 end)
 
+--================ SMOOTH LOCK =================--
+RunService.RenderStepped:Connect(function()
+    if flyEnabled and hrp and baseY then
+        local currentPos = hrp.Position
+
+        -- 🔥 เป้าหมายจริง = พื้น + slider
+        local goalY = baseY + high
+
+        local goalPos = Vector3.new(currentPos.X, goalY, currentPos.Z)
+
+        -- 🔥 สมูท
+        local newPos = currentPos:Lerp(goalPos, 0.2)
+
+        hrp.AssemblyLinearVelocity = Vector3.zero
+        hrp.AssemblyAngularVelocity = Vector3.zero
+
+        hrp.CFrame = CFrame.new(newPos)
+    end
+end)
+
+--================ RESET =================--
 player.CharacterAdded:Connect(function()
     task.wait(1)
     updateHRP()
 
     if flyEnabled and hrp then
-        baseCF = hrp.CFrame
-        lockCF = baseCF + Vector3.new(0,high,0)
+        baseY = hrp.Position.Y
     end
 end)
 
