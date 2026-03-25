@@ -316,7 +316,7 @@ speedBox.FocusLost:Connect(function()
     setSpeed(n)
 end)
 
---================ AURA =================--
+--================ AURA (BALANCED VERSION) =================--
 local enabled = false
 local hrp
 
@@ -328,47 +328,59 @@ end
 updateHRP()
 player.CharacterAdded:Connect(updateHRP)
 
+-- ================= MONSTER CACHE =================--
+local monsters = {}
+
+local function updateMonsters()
+    monsters = {}
+
+    for _, m in pairs(workspace:GetDescendants()) do
+        local h = m:FindFirstChildOfClass("Humanoid")
+        local r = m:FindFirstChild("HumanoidRootPart")
+
+        if h and r then
+            table.insert(monsters, m)
+        end
+    end
+end
+
+-- อัปเดต list ทุก 1 วิ (ปรับได้)
 task.spawn(function()
-    while task.wait(speed) do
+    while true do
+        updateMonsters()
+        task.wait(0.5) -- 🔥 ปรับตรงนี้ได้ (0.5 = เร็วขึ้น)
+    end
+end)
+
+-- ================= LOOP =================--
+task.spawn(function()
+    while true do
         if enabled and hrp then
 
             local hrpPos = hrp.Position
             local rangeSq = range * range
 
-            for _,m in pairs(workspace:GetDescendants()) do
+            for _, m in ipairs(monsters) do
                 local h = m:FindFirstChildOfClass("Humanoid")
                 local r = m:FindFirstChild("HumanoidRootPart")
 
                 if h and r and h.Health > 0 then
-
                     local diff = hrpPos - r.Position
+
                     if diff.X*diff.X + diff.Y*diff.Y + diff.Z*diff.Z <= rangeSq then
-
-                        pcall(function()
-                            -- ยิงค่าให้มอนสเตอร์
-                            remote:FireServer("DamToMonster", m, {damtype="normal"})
-                        end)
-
+                        remote:FireServer("DamToMonster", m, {damtype="normal"})
                     end
                 end
             end
 
-            -- ================= ปิดเอฟเฟค (ย้ายออกมานอก loop) =================
-            if effectEnabled then
-                local char = player.Character
-                if char then
-                    for _, obj in pairs(char:GetDescendants()) do
-                        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
-                            obj.Enabled = false
-                        end
-                    end
-                end
-            end
-
+            task.wait(speed) -- 🔥 ใช้ speed ปกติ
+        else
+            task.wait(0.1)
         end
     end
 end)
 
+-- ================= TOGGLE =================--
 toggle.MouseButton1Click:Connect(function()
     enabled = not enabled
     toggle.Text = enabled and "ON" or "OFF"
