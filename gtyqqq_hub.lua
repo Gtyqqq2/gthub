@@ -331,31 +331,40 @@ player.CharacterAdded:Connect(updateHRP)
 task.spawn(function()
     while task.wait(speed) do
         if enabled and hrp then
+
+            local hrpPos = hrp.Position
+            local rangeSq = range * range
+
             for _,m in pairs(workspace:GetDescendants()) do
                 local h = m:FindFirstChildOfClass("Humanoid")
                 local r = m:FindFirstChild("HumanoidRootPart")
 
                 if h and r and h.Health > 0 then
-                    if (hrp.Position - r.Position).Magnitude <= range then
-                        pcall(function()
-                            -- ยิงค่าให้มอนสเตอร์ปกติ
-                            remote:FireServer("DamToMonster", m, {damtype="normal"})
 
-                            -- ================= ปิดเอฟเฟคตัวเอง =================
-                            if effectEnabled then
-                                local char = player.Character
-                                if char then
-                                    for _, obj in pairs(workspace:GetDescendants()) do
-                                        if (obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam")) and obj:IsDescendantOf(char) then
-                                            obj.Enabled = false
-                                        end
-                                    end
-                                end
-                            end
+                    local diff = hrpPos - r.Position
+                    if diff.X*diff.X + diff.Y*diff.Y + diff.Z*diff.Z <= rangeSq then
+
+                        pcall(function()
+                            -- ยิงค่าให้มอนสเตอร์
+                            remote:FireServer("DamToMonster", m, {damtype="normal"})
                         end)
+
                     end
                 end
             end
+
+            -- ================= ปิดเอฟเฟค (ย้ายออกมานอก loop) =================
+            if effectEnabled then
+                local char = player.Character
+                if char then
+                    for _, obj in pairs(char:GetDescendants()) do
+                        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
+                            obj.Enabled = false
+                        end
+                    end
+                end
+            end
+
         end
     end
 end)
