@@ -338,7 +338,20 @@ task.spawn(function()
                 if h and r and h.Health > 0 then
                     if (hrp.Position - r.Position).Magnitude <= range then
                         pcall(function()
+                            -- ยิงค่าให้มอนสเตอร์ปกติ
                             remote:FireServer("DamToMonster", m, {damtype="normal"})
+
+                            -- ================= ปิดเอฟเฟคตัวเอง =================
+                            if effectEnabled then
+                                local char = player.Character
+                                if char then
+                                    for _, obj in pairs(workspace:GetDescendants()) do
+                                        if (obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam")) and obj:IsDescendantOf(char) then
+                                            obj.Enabled = false
+                                        end
+                                    end
+                                end
+                            end
                         end)
                     end
                 end
@@ -693,6 +706,59 @@ task.spawn(function()
                         VirtualInput:SendKeyEvent(false, skill, false, game)
                     end)
                 end
+            end
+        end
+    end
+end)
+
+--================ REMOVE EFFECTS UI =================--
+local effectFrame = Instance.new("Frame", pageSetting)
+effectFrame.Size = UDim2.new(0.9,0,0,40)
+effectFrame.Position = UDim2.new(0.05,0,0,10)
+effectFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", effectFrame)
+
+local effectLabel = Instance.new("TextLabel", effectFrame)
+effectLabel.Size = UDim2.new(0.7,0,1,0)
+effectLabel.BackgroundTransparency = 1
+effectLabel.Text = "Remove Effects"
+effectLabel.TextColor3 = Color3.new(1,1,1)
+effectLabel.Font = Enum.Font.GothamBold
+effectLabel.TextSize = 16
+effectLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local effectToggle = Instance.new("TextButton", effectFrame)
+effectToggle.Size = UDim2.new(0.3,0,1,0)
+effectToggle.Position = UDim2.new(0.7,0,0,0)
+effectToggle.Text = "OFF"
+effectToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+effectToggle.TextColor3 = Color3.new(1,1,1)
+effectToggle.Font = Enum.Font.GothamBold
+effectToggle.TextSize = 14
+Instance.new("UICorner", effectToggle)
+
+--================ FUNCTION setting =================--
+local effectEnabled = false
+local function removeLocalEffects()
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
+            obj.Enabled = false
+        end
+    end
+end
+
+effectToggle.MouseButton1Click:Connect(function()
+    effectEnabled = not effectEnabled
+    effectToggle.Text = effectEnabled and "ON" or "OFF"
+    effectToggle.BackgroundColor3 = effectEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+
+    if effectEnabled then
+        removeLocalEffects()
+    else
+        -- หากต้องการเปิดเอฟเฟคคืน
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
+                obj.Enabled = true
             end
         end
     end
