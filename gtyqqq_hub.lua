@@ -737,7 +737,7 @@ cooldownBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
 cooldownBox.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", cooldownBox)
 
--- ================= FUNCTION =================
+-- ================= Cooldown Loop FUNCTION =================
 local cooldown = 0.1
 local draggingCooldown = false
 
@@ -833,7 +833,7 @@ effectToggle.Font = Enum.Font.GothamBold
 effectToggle.TextSize = 14
 Instance.new("UICorner", effectToggle)
 
---================ FUNCTION setting =================--
+--================ EFFECTS FUNCTION =================--
 local effectEnabled = false
 
 local function removeEffectFromPart(obj)
