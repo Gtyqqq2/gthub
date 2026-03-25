@@ -776,7 +776,7 @@ end)
 -- ================= Smooth Graphics UI =================
 local smoothFrame = Instance.new("Frame", pageSetting)
 smoothFrame.Size = UDim2.new(0.9,0,0,40)
-smoothFrame.Position = UDim2.new(0.05,0,0,60) -- ต่อจาก Remove Effects
+smoothFrame.Position = UDim2.new(0.05,0,0,60)
 smoothFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
 Instance.new("UICorner", smoothFrame)
 
@@ -799,40 +799,34 @@ smoothToggle.Font = Enum.Font.GothamBold
 smoothToggle.TextSize = 14
 Instance.new("UICorner", smoothToggle)
 
--- ================= Smooth Graphics Logic =================
+-- ================= Smooth Graphics Functions =================
 local smoothEnabled = false
-local smoothApplied = {}
 
 local function applySmooth(part)
-    if part:IsA("BasePart") and not smoothApplied[part] then
+    if part:IsA("BasePart") then
         part.Material = Enum.Material.SmoothPlastic
         part.Color = part.Color -- ใช้สีเดิม
-        smoothApplied[part] = true
     end
 end
 
--- ปรับบล็อกเดิมทั้งหมดเมื่อเปิด
-local function applySmoothAll()
-    for _, part in pairs(workspace:GetDescendants()) do
-        applySmooth(part)
-    end
-end
-
--- ปรับบล็อกใหม่ที่เกิดขึ้น
-workspace.DescendantAdded:Connect(function(part)
+-- ใช้ DescendantAdded เพื่อปรับส่วนใหม่แบบเรียลไทม์
+workspace.DescendantAdded:Connect(function(desc)
     if smoothEnabled then
-        applySmooth(part)
+        applySmooth(desc)
     end
 end)
 
--- Toggle UI
+-- ================= Toggle Event =================
 smoothToggle.MouseButton1Click:Connect(function()
     smoothEnabled = not smoothEnabled
     smoothToggle.Text = smoothEnabled and "ON" or "OFF"
     smoothToggle.BackgroundColor3 = smoothEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
-    
+
     if smoothEnabled then
-        applySmoothAll()
+        -- กำหนดให้ชิ้นส่วนปัจจุบันทั้งหมดเรียบ
+        for _, part in pairs(workspace:GetDescendants()) do
+            applySmooth(part)
+        end
     end
 end)
 
