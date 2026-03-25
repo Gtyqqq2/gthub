@@ -140,11 +140,11 @@ toggle.Font = Enum.Font.GothamBold
 toggle.TextSize = 15
 Instance.new("UICorner", toggle)
 
---================ VALUES =================--
+--================ AURA VALUES =================--
 local range = 200
 local speed = 0.01
 
---================ LABELS =================--
+--================ AURA LABELS =================--
 local label = Instance.new("TextLabel", pageAura)
 label.Size = UDim2.new(1,0,0,25)
 label.Position = UDim2.new(0,0,0,60)
@@ -197,7 +197,7 @@ speedKnob.Position = UDim2.new(0,0,0.5,0)
 speedKnob.BackgroundColor3 = Color3.fromRGB(255,255,255)
 Instance.new("UICorner", speedKnob)
 
---================ INPUT =================--
+--================ AURA INPUT =================--
 local rangeBox = Instance.new("TextBox", pageAura)
 rangeBox.Size = UDim2.new(0.25,-5,0,25)
 rangeBox.Position = UDim2.new(0.7,0,0,78)
@@ -214,7 +214,7 @@ speedBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
 speedBox.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", speedBox)
 
---================ FILTER =================--
+--================ AURA FILTER =================--
 rangeBox:GetPropertyChangedSignal("Text"):Connect(function()
     rangeBox.Text = rangeBox.Text:gsub("[^0-9]", "")
 end)
@@ -223,7 +223,7 @@ speedBox:GetPropertyChangedSignal("Text"):Connect(function()
     speedBox.Text = speedBox.Text:gsub("[^0-9%.]", "")
 end)
 
---================ FUNCTIONS =================--
+--================ AURA FUNCTIONS =================--
 local function setRange(n)
     n = math.clamp(n,0,200)
     range = n
@@ -429,7 +429,7 @@ highBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
 highBox.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", highBox)
 
---================ LOGIC =================--
+--================ HIGH LOGIC =================--
 local function setHigh(n)
     n = math.clamp(n,10,50)
     high = n
@@ -701,16 +701,103 @@ for i, skill in ipairs(skills) do
     end)
 end
 
+-- ================= COOLDOWN LOOP SLIDER =================
+local cooldownLabel = Instance.new("TextLabel", pageAuto)
+cooldownLabel.Size = UDim2.new(1,0,0,25)
+cooldownLabel.Position = UDim2.new(0,0,0,85) -- อยู่ใต้ปุ่ม
+cooldownLabel.Text = "Cooldown Loop: 0.1s"
+cooldownLabel.TextColor3 = Color3.fromRGB(255,105,180)
+cooldownLabel.BackgroundTransparency = 1
+cooldownLabel.Font = Enum.Font.Gotham
+cooldownLabel.TextSize = 12
+
+local cooldownTrack = Instance.new("Frame", pageAuto)
+cooldownTrack.Size = UDim2.new(0.6,0,0,12)
+cooldownTrack.Position = UDim2.new(0.05,0,0,110)
+cooldownTrack.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner", cooldownTrack)
+
+local cooldownFill = Instance.new("Frame", cooldownTrack)
+cooldownFill.Size = UDim2.new(0,0,1,0)
+cooldownFill.BackgroundColor3 = Color3.fromRGB(255,105,180)
+Instance.new("UICorner", cooldownFill)
+
+local cooldownKnob = Instance.new("Frame", cooldownTrack)
+cooldownKnob.Size = UDim2.new(0,18,0,18)
+cooldownKnob.AnchorPoint = Vector2.new(0.5,0.5)
+cooldownKnob.Position = UDim2.new(0,0,0.5,0)
+cooldownKnob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+Instance.new("UICorner", cooldownKnob)
+
+local cooldownBox = Instance.new("TextBox", pageAuto)
+cooldownBox.Size = UDim2.new(0.25,-5,0,25)
+cooldownBox.Position = UDim2.new(0.7,0,0,103)
+cooldownBox.Text = "0.1"
+cooldownBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
+cooldownBox.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", cooldownBox)
+
+-- ================= FUNCTION =================
+local cooldown = 0.1
+local draggingCooldown = false
+
+local function setCooldown(n)
+    n = math.clamp(n, 0.1, 10)
+    n = math.floor(n*2)/2 -- ปรับทีละ 0.5
+    cooldown = n
+    cooldownLabel.Text = "Cooldown Loop: "..n.."s"
+
+    local rel = (n-0.1)/9.9
+    cooldownKnob.Position = UDim2.new(rel,0,0.5,0)
+    cooldownFill.Size = UDim2.new(rel,0,1,0)
+
+    cooldownBox.Text = tostring(n)
+end
+
+local function updateCooldownFromPos(x)
+    local rel = math.clamp((x - cooldownTrack.AbsolutePosition.X) / cooldownTrack.AbsoluteSize.X, 0, 1)
+    setCooldown(0.1 + rel * 9.9)
+end
+
+local function startCooldownDrag(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingCooldown = true
+        updateCooldownFromPos(i.Position.X)
+    end
+end
+
+cooldownTrack.InputBegan:Connect(startCooldownDrag)
+cooldownFill.InputBegan:Connect(startCooldownDrag)
+cooldownKnob.InputBegan:Connect(startCooldownDrag)
+
+UserInputService.InputChanged:Connect(function(i)
+    if draggingCooldown and i.UserInputType == Enum.UserInputType.MouseMovement then
+        updateCooldownFromPos(i.Position.X)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingCooldown = false
+    end
+end)
+
+cooldownBox.FocusLost:Connect(function()
+    local n = tonumber(cooldownBox.Text) or cooldown
+    setCooldown(n)
+end)
+
+setCooldown(0.1)
+
 --================ AUTO SKILL LOOP =================--
 task.spawn(function()
-    local VirtualInput = game:GetService("VirtualInputManager") -- สำหรับกดสกิลจริง
-    while task.wait(0.1) do
+    local VirtualInput = game:GetService("VirtualInputManager")
+    while task.wait(cooldown) do -- ใช้ค่า cooldown จาก slider
         local char = player.Character
         if char then
             for skill, enabled in pairs(skillToggles) do
                 if enabled then
                     pcall(function()
-                        -- กดปุ่มจริง
                         VirtualInput:SendKeyEvent(true, skill, false, game)
                         VirtualInput:SendKeyEvent(false, skill, false, game)
                     end)
