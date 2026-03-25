@@ -748,13 +748,19 @@ Instance.new("UICorner", effectToggle)
 
 --================ FUNCTION setting =================--
 local effectEnabled = false
-local function removeLocalEffects()
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
-            obj.Enabled = false
-        end
+
+local function removeEffectFromPart(obj)
+    if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
+        obj.Enabled = false
     end
 end
+
+-- ใช้ DescendantAdded เพื่อปิดเอฟเฟคใหม่แบบเรียลไทม์
+workspace.DescendantAdded:Connect(function(desc)
+    if effectEnabled then
+        removeEffectFromPart(desc)
+    end
+end)
 
 effectToggle.MouseButton1Click:Connect(function()
     effectEnabled = not effectEnabled
@@ -762,7 +768,10 @@ effectToggle.MouseButton1Click:Connect(function()
     effectToggle.BackgroundColor3 = effectEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 
     if effectEnabled then
-        removeLocalEffects()
+        -- ปิดเอฟเฟคชิ้นส่วนทั้งหมดปัจจุบัน
+        for _, obj in pairs(workspace:GetDescendants()) do
+            removeEffectFromPart(obj)
+        end
     else
         -- หากต้องการเปิดเอฟเฟคคืน
         for _, obj in pairs(workspace:GetDescendants()) do
