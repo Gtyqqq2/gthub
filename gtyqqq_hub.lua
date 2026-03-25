@@ -773,6 +773,69 @@ effectToggle.MouseButton1Click:Connect(function()
     end
 end)
 
+-- ================= Smooth Graphics UI =================
+local smoothFrame = Instance.new("Frame", pageSetting)
+smoothFrame.Size = UDim2.new(0.9,0,0,40)
+smoothFrame.Position = UDim2.new(0.05,0,0,60) -- ต่อจาก Remove Effects
+smoothFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", smoothFrame)
+
+local smoothLabel = Instance.new("TextLabel", smoothFrame)
+smoothLabel.Size = UDim2.new(0.7,0,1,0)
+smoothLabel.BackgroundTransparency = 1
+smoothLabel.Text = "Smooth Graphics"
+smoothLabel.TextColor3 = Color3.new(1,1,1)
+smoothLabel.Font = Enum.Font.GothamBold
+smoothLabel.TextSize = 16
+smoothLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local smoothToggle = Instance.new("TextButton", smoothFrame)
+smoothToggle.Size = UDim2.new(0.3,0,1,0)
+smoothToggle.Position = UDim2.new(0.7,0,0,0)
+smoothToggle.Text = "OFF"
+smoothToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+smoothToggle.TextColor3 = Color3.new(1,1,1)
+smoothToggle.Font = Enum.Font.GothamBold
+smoothToggle.TextSize = 14
+Instance.new("UICorner", smoothToggle)
+
+-- ================= Smooth Graphics Logic =================
+local smoothEnabled = false
+local smoothApplied = {}
+
+local function applySmooth(part)
+    if part:IsA("BasePart") and not smoothApplied[part] then
+        part.Material = Enum.Material.SmoothPlastic
+        part.Color = part.Color -- ใช้สีเดิม
+        smoothApplied[part] = true
+    end
+end
+
+-- ปรับบล็อกเดิมทั้งหมดเมื่อเปิด
+local function applySmoothAll()
+    for _, part in pairs(workspace:GetDescendants()) do
+        applySmooth(part)
+    end
+end
+
+-- ปรับบล็อกใหม่ที่เกิดขึ้น
+workspace.DescendantAdded:Connect(function(part)
+    if smoothEnabled then
+        applySmooth(part)
+    end
+end)
+
+-- Toggle UI
+smoothToggle.MouseButton1Click:Connect(function()
+    smoothEnabled = not smoothEnabled
+    smoothToggle.Text = smoothEnabled and "ON" or "OFF"
+    smoothToggle.BackgroundColor3 = smoothEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+    
+    if smoothEnabled then
+        applySmoothAll()
+    end
+end)
+
 --================ ICON =================--
 local iconGui = Instance.new("ScreenGui", game.CoreGui)
 local icon = Instance.new("ImageButton", iconGui)
