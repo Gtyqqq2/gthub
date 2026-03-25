@@ -301,7 +301,7 @@ end
 updateHRP()
 player.CharacterAdded:Connect(updateHRP)
 
---================ MONSTER CACHE =================--
+--================ MONSTER CACHE ( AURA + Monster PULL )=================--
 local monsters = {}
 
 local function updateMonsters()
@@ -522,17 +522,19 @@ player.CharacterAdded:Connect(function()
     end
 end)
 
---================ MONSTER PULL =================--
+--================ MONSTER PULL UI =================--
 local pullEnabled = false
 local pullDistance = 20
 local pullRange = 150
 
+-- UI Frame
 local pullFrame = Instance.new("Frame", pageTeleport)
 pullFrame.Size = UDim2.new(0.9,0,0,40)
 pullFrame.Position = UDim2.new(0.05,0,0,102)
 pullFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
 Instance.new("UICorner", pullFrame)
 
+-- Label
 local pullLabel = Instance.new("TextLabel", pullFrame)
 pullLabel.Size = UDim2.new(0.7,0,1,0)
 pullLabel.BackgroundTransparency = 1
@@ -542,6 +544,7 @@ pullLabel.Font = Enum.Font.GothamBold
 pullLabel.TextSize = 16
 pullLabel.TextXAlignment = Enum.TextXAlignment.Left
 
+-- Toggle
 local pullToggle = Instance.new("TextButton", pullFrame)
 pullToggle.Size = UDim2.new(0.3,0,1,0)
 pullToggle.Position = UDim2.new(0.7,0,0,0)
@@ -558,6 +561,7 @@ pullToggle.MouseButton1Click:Connect(function()
     pullToggle.BackgroundColor3 = pullEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 end)
 
+-- Distance Slider UI
 local distLabel = Instance.new("TextLabel", pageTeleport)
 distLabel.Size = UDim2.new(1,0,0,25)
 distLabel.Position = UDim2.new(0,0,0,142)
@@ -593,23 +597,24 @@ distBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
 distBox.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", distBox)
 
+--================ SLIDER LOGIC =================--
+local draggingDist = false
+
 local function setPullDistance(n)
-    n = math.clamp(n,10,30)
+    n = math.clamp(math.floor(n),15,30) -- ปรับ range เป็น 15-30
     pullDistance = n
     distLabel.Text = "Distance: "..n
 
-    local rel = (n-10)/20
-    distKnob.Position = UDim2.new(rel,0,0.5,0)
-    distFill.Size = UDim2.new(rel,0,1,0)
-
+    local rel = (n-15)/15
     distBox.Text = tostring(n)
+    -- ใช้ Tween หรือ Lerp ให้ knob และ fill ขยับสมูท
+    distKnob:TweenPosition(UDim2.new(rel,0,0.5,0), "Out", "Sine", 0.1, true)
+    distFill:TweenSize(UDim2.new(rel,0,1,0), "Out", "Sine", 0.1, true)
 end
-
-local draggingDist = false
 
 local function updateDistFromPos(x)
     local rel = math.clamp((x - distTrack.AbsolutePosition.X) / distTrack.AbsoluteSize.X, 0, 1)
-    setPullDistance(math.floor(10 + rel * 20))
+    setPullDistance(math.floor(15 + rel*15))
 end
 
 local function startDistDrag(i)
@@ -637,46 +642,47 @@ end)
 
 distBox.FocusLost:Connect(function()
     local n = tonumber(distBox.Text) or pullDistance
-    setPullDistance(n)
+    setPullDistance(math.floor(n))
 end)
 
 setPullDistance(20)
 
--- 🔥 LOOP ดึงมอน
+--================ MONSTER PULL LOGIC =================--
 task.spawn(function()
-    while task.wait(0.1) do
+    local lastUpdate = 0
+    local monsters = {}
+
+    while true do
+        task.wait(0.03) -- ลื่นและเร็ว
+
         if pullEnabled and hrp then
-            local monsters = {}
+            local now = tick()
 
-            for _,m in pairs(workspace:GetDescendants()) do
-                if m:IsA("Model") and not Players:GetPlayerFromCharacter(m) then
-                    local h = m:FindFirstChildOfClass("Humanoid")
-                    local r = m:FindFirstChild("HumanoidRootPart")
+            -- 🔹 อัปเดตรายชื่อมอนทุก 0.7 วินาที
+            if now - lastUpdate >= 0.7 then
+                lastUpdate = now
+                local newList = {}
+                for _, m in pairs(workspace:GetDescendants()) do
+                    if m:IsA("Model") and not Players:GetPlayerFromCharacter(m) then
+                        local h = m:FindFirstChildOfClass("Humanoid")
+                        local r = m:FindFirstChild("HumanoidRootPart")
 
-                    if h and r and h.Health > 0 then
-                        if (hrp.Position - r.Position).Magnitude <= pullRange then
-                            table.insert(monsters, r)
+                        if h and r and h.Health > 0 then
+                            if (hrp.Position - r.Position).Magnitude <= pullRange then
+                                table.insert(newList, r)
+                            end
                         end
                     end
                 end
+                monsters = newList
             end
 
-            local total = #monsters
-
-            for i, r in ipairs(monsters) do
-                if total > 0 then
-                    local angle = (i / total) * math.pi * 2
-                    local radius = 4
-
-                    local offsetX = math.cos(angle) * radius
-                    local offsetZ = math.sin(angle) * radius
-
-                    local targetCF = hrp.CFrame * CFrame.new(offsetX, 0, -pullDistance + offsetZ)
-
-                    r.CFrame = targetCF
-                    r.AssemblyLinearVelocity = Vector3.zero
-                    r.AssemblyAngularVelocity = Vector3.zero
-                end
+            -- 🔹 ดึงมอนให้ไปอยู่ด้านหน้าผู้เล่นทันที
+            for _, r in ipairs(monsters) do
+                local targetCF = hrp.CFrame * CFrame.new(0, 0, -pullDistance)
+                r.CFrame = targetCF
+                r.AssemblyLinearVelocity = Vector3.zero
+                r.AssemblyAngularVelocity = Vector3.zero
             end
         end
     end
