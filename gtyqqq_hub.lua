@@ -316,7 +316,7 @@ speedBox.FocusLost:Connect(function()
     setSpeed(n)
 end)
 
---================ AURA (FIX LAG ON ENABLE) =================--
+--================ AURA (HYBRID BEST VERSION) =================--
 local enabled = false
 local hrp
 
@@ -330,7 +330,6 @@ player.CharacterAdded:Connect(updateHRP)
 
 -- ================= MONSTER CACHE =================--
 local monsters = {}
-local running = false
 
 local function updateMonsters()
     local newList = {}
@@ -347,73 +346,65 @@ local function updateMonsters()
     monsters = newList
 end
 
--- ================= START SYSTEM =================--
-local function startAura()
-    if running then return end
-    running = true
-
-    -- 🔹 LOOP 1: อัปเดตมอน (ช้า)
-    task.spawn(function()
-        while enabled do
+-- 🔥 อัปเดตเป็นช่วง (ไม่ realtime)
+task.spawn(function()
+    while true do
+        if enabled then
             updateMonsters()
-            task.wait(1) -- 🔥 สำคัญมาก (ลด lag)
         end
-    end)
+        task.wait(0.7) -- ⭐ sweet spot
+    end
+end)
 
-    -- 🔹 LOOP 2: ยิง (เร็ว)
-    task.spawn(function()
-        local index = 1
-        local lastHit = 0
+-- ================= LOOP =================--
+task.spawn(function()
+    local index = 1
+    local lastHit = 0
 
-        while enabled do
-            if hrp then
-                local now = tick()
+    while true do
+        if enabled and hrp then
+            local now = tick()
 
-                if now - lastHit >= speed then
-                    lastHit = now
+            if now - lastHit >= speed then
+                lastHit = now
 
-                    local hrpPos = hrp.Position
-                    local rangeSq = range * range
+                local hrpPos = hrp.Position
+                local rangeSq = range * range
 
-                    for i = 1, 15 do
-                        local m = monsters[index]
-                        if not m then break end
+                for i = 1, 15 do
+                    local m = monsters[index]
+                    if not m then break end
 
-                        local h = m:FindFirstChildOfClass("Humanoid")
-                        local r = m:FindFirstChild("HumanoidRootPart")
+                    local h = m:FindFirstChildOfClass("Humanoid")
+                    local r = m:FindFirstChild("HumanoidRootPart")
 
-                        if h and r and h.Health > 0 then
-                            local diff = hrpPos - r.Position
+                    if h and r and h.Health > 0 then
+                        local diff = hrpPos - r.Position
 
-                            if diff.X*diff.X + diff.Y*diff.Y + diff.Z*diff.Z <= rangeSq then
-                                remote:FireServer("DamToMonster", m, {damtype="normal"})
-                            end
+                        if diff.X*diff.X + diff.Y*diff.Y + diff.Z*diff.Z <= rangeSq then
+                            remote:FireServer("DamToMonster", m, {damtype="normal"})
                         end
+                    end
 
-                        index += 1
-                        if index > #monsters then
-                            index = 1
-                        end
+                    index += 1
+                    if index > #monsters then
+                        index = 1
                     end
                 end
             end
 
-            task.wait() -- 🔥 ลื่นสุด
+            task.wait()
+        else
+            task.wait(0.05)
         end
-
-        running = false
-    end)
-end
+    end
+end)
 
 -- ================= TOGGLE =================--
 toggle.MouseButton1Click:Connect(function()
     enabled = not enabled
     toggle.Text = enabled and "ON" or "OFF"
     toggle.BackgroundColor3 = enabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(50,50,50)
-
-    if enabled then
-        startAura()
-    end
 end)
 
 --================ FLY LOCK =================--
