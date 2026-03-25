@@ -197,7 +197,7 @@ speedKnob.Position = UDim2.new(0,0,0.5,0)
 speedKnob.BackgroundColor3 = Color3.fromRGB(255,255,255)
 Instance.new("UICorner", speedKnob)
 
---================ AURA INPUT =================--
+--================ INPUT BOX =================--
 local rangeBox = Instance.new("TextBox", pageAura)
 rangeBox.Size = UDim2.new(0.25,-5,0,25)
 rangeBox.Position = UDim2.new(0.7,0,0,78)
@@ -214,18 +214,9 @@ speedBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
 speedBox.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", speedBox)
 
---================ AURA FILTER =================--
-rangeBox:GetPropertyChangedSignal("Text"):Connect(function()
-    rangeBox.Text = rangeBox.Text:gsub("[^0-9]", "")
-end)
-
-speedBox:GetPropertyChangedSignal("Text"):Connect(function()
-    speedBox.Text = speedBox.Text:gsub("[^0-9%.]", "")
-end)
-
---================ AURA FUNCTIONS =================--
+--================ FUNCTIONS =================--
 local function setRange(n)
-    n = math.clamp(n,0,200)
+    n = math.clamp(n, 0, 200)
     range = n
     label.Text = "Range: "..n
 
@@ -237,7 +228,7 @@ local function setRange(n)
 end
 
 local function setSpeed(n)
-    n = math.clamp(n,0.01,0.1)
+    n = math.clamp(n, 0.01, 0.1)
     speed = n
     speedLabel.Text = string.format("Speed: %.2f", n)
 
@@ -248,7 +239,7 @@ local function setSpeed(n)
     speedBox.Text = string.format("%.2f", n)
 end
 
---================ SLIDER DRAG =================--
+--================ DRAG =================--
 local dragging = false
 local draggingSpeed = false
 
@@ -262,33 +253,26 @@ local function updateSpeedFromPos(x)
     setSpeed(0.01 + rel * 0.09)
 end
 
-local function inputBegan(input, target)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        if target == track or target == knob or target == fill then
-            dragging = true
-            updateRangeFromPos(input.Position.X)
-        end
-
-        if target == speedTrack or target == speedKnob or target == speedFill then
-            draggingSpeed = true
-            updateSpeedFromPos(input.Position.X)
-        end
+track.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        updateRangeFromPos(i.Position.X)
     end
-end
+end)
 
-local function inputChanged(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        if dragging then
-            updateRangeFromPos(input.Position.X)
-        end
-
-        if draggingSpeed then
-            updateSpeedFromPos(input.Position.X)
-        end
+speedTrack.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingSpeed = true
+        updateSpeedFromPos(i.Position.X)
     end
-end
+end)
 
-UserInputService.InputChanged:Connect(inputChanged)
+UserInputService.InputChanged:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseMovement then
+        if dragging then updateRangeFromPos(i.Position.X) end
+        if draggingSpeed then updateSpeedFromPos(i.Position.X) end
+    end
+end)
 
 UserInputService.InputEnded:Connect(function(i)
     if i.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -297,26 +281,15 @@ UserInputService.InputEnded:Connect(function(i)
     end
 end)
 
-track.InputBegan:Connect(function(i) inputBegan(i, track) end)
-fill.InputBegan:Connect(function(i) inputBegan(i, fill) end)
-knob.InputBegan:Connect(function(i) inputBegan(i, knob) end)
-
-speedTrack.InputBegan:Connect(function(i) inputBegan(i, speedTrack) end)
-speedFill.InputBegan:Connect(function(i) inputBegan(i, speedFill) end)
-speedKnob.InputBegan:Connect(function(i) inputBegan(i, speedKnob) end)
-
---================ INPUT APPLY =================--
 rangeBox.FocusLost:Connect(function()
-    local n = tonumber(rangeBox.Text) or range
-    setRange(n)
+    setRange(tonumber(rangeBox.Text) or range)
 end)
 
 speedBox.FocusLost:Connect(function()
-    local n = tonumber(speedBox.Text) or speed
-    setSpeed(n)
+    setSpeed(tonumber(speedBox.Text) or speed)
 end)
 
---================ AURA (HYBRID BEST VERSION) =================--
+--================ AURA HYBRID (SYNC SLIDER) =================--
 local enabled = false
 local hrp
 
@@ -328,50 +301,52 @@ end
 updateHRP()
 player.CharacterAdded:Connect(updateHRP)
 
--- ================= MONSTER CACHE =================--
+--================ MONSTER CACHE =================--
 local monsters = {}
 
 local function updateMonsters()
-    local newList = {}
+    local new = {}
 
     for _, m in pairs(workspace:GetDescendants()) do
         local h = m:FindFirstChildOfClass("Humanoid")
         local r = m:FindFirstChild("HumanoidRootPart")
 
         if h and r then
-            table.insert(newList, m)
+            table.insert(new, m)
         end
     end
 
-    monsters = newList
+    monsters = new
 end
 
--- 🔥 อัปเดตเป็นช่วง (ไม่ realtime)
+-- 🔁 อัปเดตมอน (ช้า = ไม่แลค)
 task.spawn(function()
     while true do
         if enabled then
             updateMonsters()
         end
-        task.wait(0.7) -- ⭐ sweet spot
+        task.wait(0.7)
     end
 end)
 
--- ================= LOOP =================--
+--================ ATTACK LOOP =================--
 task.spawn(function()
-    local index = 1
     local lastHit = 0
+    local index = 1
 
     while true do
         if enabled and hrp then
             local now = tick()
 
+            -- 🔥 ใช้ speed จาก slider
             if now - lastHit >= speed then
                 lastHit = now
 
                 local hrpPos = hrp.Position
                 local rangeSq = range * range
 
-                for i = 1, 15 do
+                -- ยิงทีละนิด (ลื่นกว่า)
+                for i = 1, 10 do
                     local m = monsters[index]
                     if not m then break end
 
@@ -381,8 +356,11 @@ task.spawn(function()
                     if h and r and h.Health > 0 then
                         local diff = hrpPos - r.Position
 
+                        -- 🔥 ใช้ range จาก slider
                         if diff.X*diff.X + diff.Y*diff.Y + diff.Z*diff.Z <= rangeSq then
-                            remote:FireServer("DamToMonster", m, {damtype="normal"})
+                            pcall(function()
+                                remote:FireServer("DamToMonster", m, {damtype="normal"})
+                            end)
                         end
                     end
 
@@ -392,39 +370,17 @@ task.spawn(function()
                     end
                 end
             end
-
-            task.wait()
-        else
-            task.wait(0.05)
         end
+
+        task.wait()
     end
 end)
 
--- ================= TOGGLE =================--
+--================ TOGGLE =================--
 toggle.MouseButton1Click:Connect(function()
     enabled = not enabled
     toggle.Text = enabled and "ON" or "OFF"
     toggle.BackgroundColor3 = enabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(50,50,50)
-end)
-
---================ FLY LOCK =================--
-local flyEnabled = false
-local high = 35
-local baseCF = nil
-local lockCF = nil
-
-flyLockToggle.MouseButton1Click:Connect(function()
-    flyEnabled = not flyEnabled
-    flyLockToggle.Text = flyEnabled and "ON" or "OFF"
-    flyLockToggle.BackgroundColor3 = flyEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
-
-    if flyEnabled and hrp then
-        baseCF = hrp.CFrame
-        lockCF = baseCF + Vector3.new(0,high,0)
-    else
-        lockCF = nil
-        baseCF = nil
-    end
 end)
 
 --================ HIGH UI =================--
