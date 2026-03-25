@@ -149,7 +149,7 @@ local label = Instance.new("TextLabel", pageAura)
 label.Size = UDim2.new(1,0,0,25)
 label.Position = UDim2.new(0,0,0,60)
 label.Text = "Range: 200"
-label.TextColor3 = Color3.fromRGB(0,255,100)
+label.TextColor3 = Color3.fromRGB(102,255,178)
 label.BackgroundTransparency = 1
 
 local speedLabel = Instance.new("TextLabel", pageAura)
@@ -168,7 +168,7 @@ Instance.new("UICorner", track)
 
 local fill = Instance.new("Frame", track)
 fill.Size = UDim2.new(1,0,1,0)
-fill.BackgroundColor3 = Color3.fromRGB(255,0,0)
+fill.BackgroundColor3 = Color3.fromRGB(102,255,178)
 Instance.new("UICorner", fill)
 
 local knob = Instance.new("Frame", track)
@@ -731,7 +731,7 @@ local cooldownLabel = Instance.new("TextLabel", pageAuto)
 cooldownLabel.Size = UDim2.new(1,0,0,25)
 cooldownLabel.Position = UDim2.new(0,0,0,85) -- อยู่ใต้ปุ่ม
 cooldownLabel.Text = "Cooldown Loop: 0.1s"
-cooldownLabel.TextColor3 = Color3.fromRGB(255,105,180)
+cooldownLabel.TextColor3 = Color3.fromRGB(255,0,0)
 cooldownLabel.BackgroundTransparency = 1
 cooldownLabel.Font = Enum.Font.Gotham
 cooldownLabel.TextSize = 12
@@ -744,7 +744,7 @@ Instance.new("UICorner", cooldownTrack)
 
 local cooldownFill = Instance.new("Frame", cooldownTrack)
 cooldownFill.Size = UDim2.new(0,0,1,0)
-cooldownFill.BackgroundColor3 = Color3.fromRGB(255,105,180)
+cooldownFill.BackgroundColor3 = Color3.fromRGB(255,0,0)
 Instance.new("UICorner", cooldownFill)
 
 local cooldownKnob = Instance.new("Frame", cooldownTrack)
@@ -759,7 +759,7 @@ cooldownBox.Size = UDim2.new(0.25,-5,0,25)
 cooldownBox.Position = UDim2.new(0.7,0,0,103)
 cooldownBox.Text = "0.1"
 cooldownBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
-cooldownBox.TextColor3 = Color3.new(1,1,1)
+cooldownBox.TextColor3 = Color3.new(102,255,178)
 Instance.new("UICorner", cooldownBox)
 
 -- ================= Cooldown Loop FUNCTION =================
