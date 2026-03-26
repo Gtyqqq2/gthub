@@ -2,7 +2,7 @@
                  👾 gtyqqq Hub 👾 
 - complete ( fly lock / pull monster / kill aura / auto skill ) 
 wait for update auto upgrade and rebirth
-     📢 This script has been optimized now 📢
+     📢 This script has not been optimized yet 📢
 ]]
 
 local Players = game:GetService("Players")
@@ -329,50 +329,51 @@ task.spawn(function()
     end
 end)
 
---================ ATTACK LOOP =================--
+--================ ATTACK LOOP (FIXED FAST) =================--
 task.spawn(function()
     local lastHit = 0
     local index = 1
 
     while true do
         if enabled and hrp then
+            RunService.Heartbeat:Wait()
+
             local now = tick()
 
-            -- 🔥 ใช้ speed จาก slider
             if now - lastHit >= speed then
                 lastHit = now
 
                 local hrpPos = hrp.Position
                 local rangeSq = range * range
+                local list = monsters
 
-                -- ยิงทีละนิด (ลื่นกว่า)
-                for i = 1, 10 do
-                    local m = monsters[index]
-                    if not m then break end
+                if #list > 0 then
+                    -- 🔥 เพิ่มความเร็ว: ยิงหลายตัวต่อรอบ
+                    for i = 1, 10 do
+                        local m = list[index]
 
-                    local h = m:FindFirstChildOfClass("Humanoid")
-                    local r = m:FindFirstChild("HumanoidRootPart")
+                        if not m then break end
 
-                    if h and r and h.Health > 0 then
-                        local diff = hrpPos - r.Position
+                        local h = m:FindFirstChildOfClass("Humanoid")
+                        local r = m:FindFirstChild("HumanoidRootPart")
 
-                        -- 🔥 ใช้ range จาก slider
-                        if diff.X*diff.X + diff.Y*diff.Y + diff.Z*diff.Z <= rangeSq then
-                            pcall(function()
-                                remote:FireServer("DamToMonster", m, {damtype="normal"})
-                            end)
+                        if h and r and h.Health > 0 then
+                            local diff = hrpPos - r.Position
+                            if (diff.X*diff.X + diff.Y*diff.Y + diff.Z*diff.Z) <= rangeSq then
+                                remote:FireServer("DamToMonster", m, {damtype = "normal"})
+                            end
                         end
-                    end
 
-                    index += 1
-                    if index > #monsters then
-                        index = 1
+                        index += 1
+                        if index > #list then
+                            index = 1
+                        end
                     end
                 end
             end
+        else
+            RunService.Heartbeat:Wait()
         end
-
-        task.wait()
     end
 end)
 
