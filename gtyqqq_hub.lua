@@ -524,7 +524,7 @@ end)
 
 --================ MONSTER PULL UI =================--
 local pullEnabled = false
-local pullDistance = 20
+local pullDistance = 18
 local pullRange = 150
 
 -- UI Frame
