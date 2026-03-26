@@ -524,7 +524,7 @@ end)
 
 --================ MONSTER PULL UI =================--
 local pullEnabled = false
-local pullDistance = 18
+local pullDistance = 20
 local pullRange = 150
 
 -- UI Frame
@@ -565,7 +565,7 @@ end)
 local distLabel = Instance.new("TextLabel", pageTeleport)
 distLabel.Size = UDim2.new(1,0,0,25)
 distLabel.Position = UDim2.new(0,0,0,142)
-distLabel.Text = "Distance: 18"
+distLabel.Text = "Distance: 20"
 distLabel.TextColor3 = Color3.fromRGB(255,105,180)
 distLabel.BackgroundTransparency = 1
 distLabel.Font = Enum.Font.Gotham
@@ -592,7 +592,7 @@ Instance.new("UICorner", distKnob)
 local distBox = Instance.new("TextBox", pageTeleport)
 distBox.Size = UDim2.new(0.25,-5,0,25)
 distBox.Position = UDim2.new(0.7,0,0,158)
-distBox.Text = "18"
+distBox.Text = "20"
 distBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
 distBox.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", distBox)
