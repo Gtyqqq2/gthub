@@ -952,6 +952,42 @@ smoothToggle.MouseButton1Click:Connect(function()
     end
 end)
 
+--================ ANTI DISCONNECT (UI + SYSTEM) =================--
+
+local antiEnabled = false
+
+--================ UI =================--
+local antiFrame = Instance.new("Frame", pageSetting)
+antiFrame.Size = UDim2.new(0.9,0,0,40)
+antiFrame.Position = UDim2.new(0.05,0,0,110) -- 🔥 เลื่อนลงมา (ถัดจาก Smooth)
+antiFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", antiFrame)
+
+local antiLabel = Instance.new("TextLabel", antiFrame)
+antiLabel.Size = UDim2.new(0.7,0,1,0)
+antiLabel.BackgroundTransparency = 1
+antiLabel.Text = "Anti Disconnect"
+antiLabel.TextColor3 = Color3.new(1,1,1)
+antiLabel.Font = Enum.Font.GothamBold
+antiLabel.TextSize = 16
+antiLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local antiToggle = Instance.new("TextButton", antiFrame)
+antiToggle.Size = UDim2.new(0.3,0,1,0)
+antiToggle.Position = UDim2.new(0.7,0,0,0)
+antiToggle.Text = "OFF"
+antiToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+antiToggle.TextColor3 = Color3.new(1,1,1)
+antiToggle.Font = Enum.Font.GothamBold
+antiToggle.TextSize = 14
+Instance.new("UICorner", antiToggle)
+
+antiToggle.MouseButton1Click:Connect(function()
+    antiEnabled = not antiEnabled
+    antiToggle.Text = antiEnabled and "ON" or "OFF"
+    antiToggle.BackgroundColor3 = antiEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+end)
+
 --================ ICON =================--
 local iconGui = Instance.new("ScreenGui", game.CoreGui)
 local icon = Instance.new("ImageButton", iconGui)
