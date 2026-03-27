@@ -616,11 +616,11 @@ Instance.new("UICorner", distBox)
 local draggingDist = false
 
 local function setPullDistance(n)
-    n = math.clamp(math.floor(n),15,30) -- ปรับ range เป็น 15-30
+    n = math.clamp(math.floor(n),15,75) -- ปรับ range เป็น 15-50
     pullDistance = n
     distLabel.Text = "Distance: "..n
 
-    local rel = (n-15)/15
+    local rel = (n-15)/(75-15)
     distBox.Text = tostring(n)
     -- ใช้ Tween หรือ Lerp ให้ knob และ fill ขยับสมูท
     distKnob:TweenPosition(UDim2.new(rel,0,0.5,0), "Out", "Sine", 0.1, true)
@@ -629,7 +629,7 @@ end
 
 local function updateDistFromPos(x)
     local rel = math.clamp((x - distTrack.AbsolutePosition.X) / distTrack.AbsoluteSize.X, 0, 1)
-    setPullDistance(math.floor(15 + rel*15))
+    setPullDistance(math.floor(15 + rel*(75-15)))
 end
 
 local function startDistDrag(i)
@@ -668,7 +668,7 @@ task.spawn(function()
     local monsters = {}
 
     while true do
-        task.wait(0.03) -- ลื่นและเร็ว
+        task.wait(0.03)
 
         if pullEnabled and hrp then
             local now = tick()
@@ -677,6 +677,7 @@ task.spawn(function()
             if now - lastUpdate >= 0.7 then
                 lastUpdate = now
                 local newList = {}
+
                 for _, m in pairs(workspace:GetDescendants()) do
                     if m:IsA("Model") and not Players:GetPlayerFromCharacter(m) then
                         local h = m:FindFirstChildOfClass("Humanoid")
@@ -689,13 +690,21 @@ task.spawn(function()
                         end
                     end
                 end
+
                 monsters = newList
             end
 
-            -- 🔹 ดึงมอนให้ไปอยู่ด้านหน้าผู้เล่นทันที
+            -- 🔥 ดึงมอน + หมุน 15 องศา
             for _, r in ipairs(monsters) do
-                local targetCF = hrp.CFrame * CFrame.new(0, 0, -pullDistance)
-                r.CFrame = targetCF
+
+                local targetPos = (hrp.CFrame * CFrame.new(0, 0, -pullDistance)).Position
+
+                -- หันเข้าหาผู้เล่น + หมุนเพิ่ม 15°
+                local baseCFrame = CFrame.new(targetPos, hrp.Position)
+                local offset = CFrame.Angles(0, math.rad(25), 0)
+
+                r.CFrame = baseCFrame * offset
+
                 r.AssemblyLinearVelocity = Vector3.zero
                 r.AssemblyAngularVelocity = Vector3.zero
             end
