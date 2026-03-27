@@ -53,7 +53,7 @@ menu.BackgroundColor3 = Color3.fromRGB(25,25,25)
 menu.BackgroundTransparency = 0.2
 Instance.new("UICorner", menu)
 
-menu.CanvasSize = UDim2.new(0,0,0,300) 
+menu.CanvasSize = UDim2.new(0,0,0,360) -- 🔥 เพิ่มความสูงรองรับปุ่มใหม่
 menu.ScrollBarThickness = 6
 menu.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 menu.ScrollBarImageColor3 = Color3.fromRGB(180,180,180)
@@ -72,10 +72,16 @@ local function makeButton(parent, text, yOffset)
     return b
 end
 
-local btnAura = makeButton(menu,"Aura",15)
-local btnTeleport = makeButton(menu,"Teleport",70)
-local btnAuto = makeButton(menu,"Auto",125)
-local btnSetting = makeButton(menu,"Setting",180)
+-- 🔥 เพิ่มปุ่ม Main บนสุด
+local btnMain = makeButton(menu,"Main",15)
+
+-- 🔽 เลื่อนปุ่มเดิมลงทั้งหมด
+local btnAura = makeButton(menu,"Aura",70)
+local btnTeleport = makeButton(menu,"Teleport",125)
+local btnAuto = makeButton(menu,"Auto",180)
+local btnSetting = makeButton(menu,"Setting",235)
+
+---
 
 --================ PAGE =================--
 local pages = Instance.new("Frame", frame)
@@ -83,9 +89,17 @@ pages.Size = UDim2.new(1,-110,1,-40)
 pages.Position = UDim2.new(0,100,0,40)
 pages.BackgroundTransparency = 1
 
+-- 🔥 หน้าใหม่ (หน้าแรก)
+local pageMain = Instance.new("Frame", pages)
+pageMain.Size = UDim2.new(1,0,1,0)
+pageMain.BackgroundTransparency = 1
+pageMain.Visible = true
+
+-- 🔽 หน้าเดิม
 local pageAura = Instance.new("Frame", pages)
 pageAura.Size = UDim2.new(1,0,1,0)
 pageAura.BackgroundTransparency = 1
+pageAura.Visible = false
 
 local pageTeleport = Instance.new("Frame", pages)
 pageTeleport.Size = UDim2.new(1,0,1,0)
@@ -988,6 +1002,124 @@ antiToggle.MouseButton1Click:Connect(function()
     antiToggle.BackgroundColor3 = antiEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 end)
 
+--================ MAIN PROFILE + STAT FINAL FIXED =================--
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+--================ PROFILE =================--
+
+-- 🏷 Profile (อยู่สูงขึ้น + มีระยะห่างดีขึ้น)
+local profileTitle = Instance.new("TextLabel", pageMain)
+profileTitle.Size = UDim2.new(0,85,0,20)
+profileTitle.Position = UDim2.new(0.03,0,0.16,0)
+profileTitle.BackgroundTransparency = 1
+profileTitle.Text = "Profile"
+profileTitle.TextColor3 = Color3.fromRGB(255,255,255)
+profileTitle.Font = Enum.Font.GothamBold
+profileTitle.TextSize = 14
+profileTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+-- 🧱 กรอบรูป (ห่างจากคำว่า Profile มากขึ้น)
+local profileFrame = Instance.new("Frame", pageMain)
+profileFrame.Size = UDim2.new(0,85,0,85)
+profileFrame.Position = UDim2.new(0.03,0,0.30,0)
+profileFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", profileFrame)
+
+-- 🧑 Avatar
+local avatar = Instance.new("ImageLabel", profileFrame)
+avatar.Size = UDim2.new(0,75,0,75)
+avatar.Position = UDim2.new(0.5,-37,0.5,-37)
+avatar.BackgroundTransparency = 1
+avatar.Image = ("https://www.roblox.com/headshot-thumbnail/image?userId=%s&width=420&height=420&format=png"):format(player.UserId)
+
+--================ RIGHT SIDE =================--
+
+local rightX = 0.38
+
+-- 🧠 STAT TITLE
+local statTitle = Instance.new("TextLabel", pageMain)
+statTitle.Size = UDim2.new(0.55,0,0,30)
+statTitle.Position = UDim2.new(rightX,0,0,20)
+statTitle.BackgroundTransparency = 1
+statTitle.Text = "Stat"
+statTitle.TextColor3 = Color3.fromRGB(255,255,255)
+statTitle.Font = Enum.Font.GothamBold
+statTitle.TextSize = 18
+statTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+-- ⏱ TIME
+local timeLabel = Instance.new("TextLabel", pageMain)
+timeLabel.Size = UDim2.new(0.55,0,0,25)
+timeLabel.Position = UDim2.new(rightX,0,0,55)
+timeLabel.BackgroundTransparency = 1
+timeLabel.Text = "Time: 0s"
+timeLabel.TextColor3 = Color3.fromRGB(255,255,255)
+timeLabel.Font = Enum.Font.Gotham
+timeLabel.TextSize = 14
+timeLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+-- 🏷 SERVER TEXT
+local serverTitle = Instance.new("TextLabel", pageMain)
+serverTitle.Size = UDim2.new(0.55,0,0,20)
+serverTitle.Position = UDim2.new(rightX,0,0,80)
+serverTitle.BackgroundTransparency = 1
+serverTitle.Text = "Server"
+serverTitle.TextColor3 = Color3.fromRGB(200,200,200)
+serverTitle.Font = Enum.Font.GothamBold
+serverTitle.TextSize = 13
+serverTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+-- 📋 SERVER URL (กลางจริงใต้ Server)
+local serverBox = Instance.new("TextBox", pageMain)
+serverBox.Size = UDim2.new(0.38,0,0,40)
+serverBox.Position = UDim2.new(0.66,0,0,105)
+serverBox.AnchorPoint = Vector2.new(0.5,0) -- 🔥 FIX กึ่งกลางจริง
+serverBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
+serverBox.Text = game.JobId
+serverBox.TextColor3 = Color3.fromRGB(220,220,220)
+serverBox.Font = Enum.Font.Gotham
+serverBox.TextSize = 12
+serverBox.ClearTextOnFocus = false
+serverBox.TextWrapped = true
+serverBox.TextXAlignment = Enum.TextXAlignment.Center
+serverBox.TextYAlignment = Enum.TextYAlignment.Center
+Instance.new("UICorner", serverBox)
+
+--================ TIME SYSTEM =================--
+
+local startTime = tick()
+
+local function formatTime(sec)
+    local d = math.floor(sec / 86400)
+    sec = sec % 86400
+
+    local h = math.floor(sec / 3600)
+    sec = sec % 3600
+
+    local m = math.floor(sec / 60)
+    local s = sec % 60
+
+    if d > 0 then
+        return d.."d "..h.."h "..m.."m "..s.."s"
+    elseif h > 0 then
+        return h.."h "..m.."m "..s.."s"
+    elseif m > 0 then
+        return m.."m "..s.."s"
+    else
+        return s.."s"
+    end
+end
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        local elapsed = math.floor(tick() - startTime)
+        timeLabel.Text = "Time: "..formatTime(elapsed)
+    end
+end)
+
 --================ ICON =================--
 local iconGui = Instance.new("ScreenGui", game.CoreGui)
 local icon = Instance.new("ImageButton", iconGui)
@@ -1053,7 +1185,17 @@ icon.MouseButton1Click:Connect(function()
 end)
 
 --================ FIX MENU =================--
+
+btnMain.MouseButton1Click:Connect(function()
+    pageMain.Visible = true
+    pageAura.Visible = false
+    pageTeleport.Visible = false
+    pageAuto.Visible = false
+    pageSetting.Visible = false
+end)
+
 btnAura.MouseButton1Click:Connect(function()
+    pageMain.Visible = false
     pageAura.Visible = true
     pageTeleport.Visible = false
     pageAuto.Visible = false
@@ -1061,6 +1203,7 @@ btnAura.MouseButton1Click:Connect(function()
 end)
 
 btnTeleport.MouseButton1Click:Connect(function()
+    pageMain.Visible = false
     pageAura.Visible = false
     pageTeleport.Visible = true
     pageAuto.Visible = false
@@ -1068,6 +1211,7 @@ btnTeleport.MouseButton1Click:Connect(function()
 end)
 
 btnAuto.MouseButton1Click:Connect(function()
+    pageMain.Visible = false
     pageAura.Visible = false
     pageTeleport.Visible = false
     pageAuto.Visible = true
@@ -1075,6 +1219,7 @@ btnAuto.MouseButton1Click:Connect(function()
 end)
 
 btnSetting.MouseButton1Click:Connect(function()
+    pageMain.Visible = false
     pageAura.Visible = false
     pageTeleport.Visible = false
     pageAuto.Visible = false
