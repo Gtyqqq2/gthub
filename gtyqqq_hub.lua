@@ -616,11 +616,11 @@ Instance.new("UICorner", distBox)
 local draggingDist = false
 
 local function setPullDistance(n)
-    n = math.clamp(math.floor(n),15,75) -- ปรับ range เป็น 15-50
+    n = math.clamp(math.floor(n),15,100) -- ปรับ range เป็น 15-100
     pullDistance = n
     distLabel.Text = "Distance: "..n
 
-    local rel = (n-15)/(75-15)
+    local rel = (n-15)/(100-15)
     distBox.Text = tostring(n)
     -- ใช้ Tween หรือ Lerp ให้ knob และ fill ขยับสมูท
     distKnob:TweenPosition(UDim2.new(rel,0,0.5,0), "Out", "Sine", 0.1, true)
@@ -629,7 +629,7 @@ end
 
 local function updateDistFromPos(x)
     local rel = math.clamp((x - distTrack.AbsolutePosition.X) / distTrack.AbsoluteSize.X, 0, 1)
-    setPullDistance(math.floor(15 + rel*(75-15)))
+    setPullDistance(math.floor(15 + rel*(100-15)))
 end
 
 local function startDistDrag(i)
@@ -673,8 +673,8 @@ task.spawn(function()
         if pullEnabled and hrp then
             local now = tick()
 
-            -- 🔹 อัปเดตรายชื่อมอนทุก 0.7 วินาที
-            if now - lastUpdate >= 0.7 then
+            -- 🔹 อัปเดตรายชื่อมอนทุก 0.5 วินาที
+            if now - lastUpdate >= 0.5 then
                 lastUpdate = now
                 local newList = {}
 
@@ -694,12 +694,12 @@ task.spawn(function()
                 monsters = newList
             end
 
-            -- 🔥 ดึงมอน + หมุน 15 องศา
+            -- 🔥 ดึงมอน + หมุน 25 องศา
             for _, r in ipairs(monsters) do
 
                 local targetPos = (hrp.CFrame * CFrame.new(0, 0, -pullDistance)).Position
 
-                -- หันเข้าหาผู้เล่น + หมุนเพิ่ม 15°
+                -- หันเข้าหาผู้เล่น + หมุนเพิ่ม 25°
                 local baseCFrame = CFrame.new(targetPos, hrp.Position)
                 local offset = CFrame.Angles(0, math.rad(25), 0)
 
