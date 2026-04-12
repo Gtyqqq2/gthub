@@ -1,1 +1,209 @@
+--================ MAP A (ELEVATOR SYSTEM) =================--
+local PLACE_A = 94229247275433
 
+if game.PlaceId ~= PLACE_A then
+    warn("❌ MAP A BLOCKED")
+else
+
+    local Players = game:GetService("Players")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+    local enterArgs = { "Elevator19" }
+    local startArgs = { "Elevator19" }
+
+    --================ ZONE =================--
+    local minX, maxX = -125.65, -107.50
+    local minZ, maxZ = -185, -164.50
+
+    local function isPlayerInZone(pos)
+        return pos.X >= minX and pos.X <= maxX
+            and pos.Z >= minZ and pos.Z <= maxZ
+    end
+
+    local function isAnyoneInZone()
+        for _, plr in pairs(Players:GetPlayers()) do
+            local char = plr.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                local pos = char.HumanoidRootPart.Position
+                if isPlayerInZone(pos) then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    task.spawn(function()
+        local stableTime = 0
+        local requiredTime = 3
+
+        while true do
+            task.wait(0.1)
+
+            if isAnyoneInZone() then
+                stableTime = 0
+                continue
+            end
+
+            stableTime += 0.1
+
+            if stableTime >= requiredTime then
+                stableTime = 0
+
+                pcall(function()
+                    ReplicatedStorage.Events.EnterElevator:FireServer(unpack(enterArgs))
+                end)
+
+                task.wait(0)
+
+                pcall(function()
+                    ReplicatedStorage.Events.StartElevator:FireServer(unpack(startArgs))
+                end)
+
+                print("🚀 MAP A Elevator triggered")
+            end
+        end
+    end)
+
+end
+--================ MAP B (TOWER FARM SYSTEM) =================--
+local PLACE_B = 109399243596075
+
+if game.PlaceId ~= PLACE_B then
+    warn("❌ MAP B BLOCKED")
+else
+
+    --================ SERVICES =================--
+    local Players = game:GetService("Players")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+    local player = Players.LocalPlayer
+
+    --================ REMOTES =================--
+    local VoteSkip = ReplicatedStorage.Events.VoteSkip
+    local SpawnTower = ReplicatedStorage.Functions.SpawnTower
+    local GetStreak = ReplicatedStorage.LTTD_FOLDER.RemoteFunc.GetStreak
+    local ExitGame = ReplicatedStorage.Events.ExitGame
+
+    --================ SETTINGS =================--
+    local towerName1 = "Large Speaker Helicopter"
+    local towerName2 = "Large Speaker Helicopter2"
+    local towerName3 = "Large Speaker Helicopter3"
+    local towerName4 = "Large Speaker Helicopter4"
+
+    local basePos = CFrame.new(
+        15.841117858886719,
+        85.38301086425781,
+        -7.187814712524414
+    )
+
+    --================ STATE =================--
+    local money = 0
+    local currentStage = 0
+    local currentTower = nil
+
+    local maxTowers = 15
+    local placedCount = 0
+
+    --================ RANDOM OFFSET =================--
+    local function randomOffsetCF(cf)
+        local x = (math.random(1,10)/100) * (math.random(0,1)==0 and -1 or 1)
+        local z = (math.random(1,10)/100) * (math.random(0,1)==0 and -1 or 1)
+        return cf + Vector3.new(x, 0, z)
+    end
+
+    --================ MONEY CHECK =================--
+    task.spawn(function()
+        while true do
+            task.wait(0.5)
+
+            local stats = player:FindFirstChild("leaderstats")
+            if stats then
+                local last
+                for _,v in pairs(stats:GetChildren()) do
+                    last = v
+                end
+                if last then
+                    money = last.Value
+                end
+            end
+        end
+    end)
+
+    --================ AUTO SKIP =================--
+    task.spawn(function()
+        while true do
+            task.wait(0.1)
+            pcall(function()
+                VoteSkip:FireServer()
+            end)
+        end
+    end)
+
+    --================ MAIN FARM LOOP =================--
+    task.spawn(function()
+        while true do
+            task.wait(0.1)
+
+            --================ PLACE =================--
+            if currentStage == 0 and money >= 500 and placedCount < maxTowers then
+
+                local placePos = randomOffsetCF(basePos)
+
+                local args = {
+                    [1] = towerName1,
+                    [2] = placePos
+                }
+
+                SpawnTower:InvokeServer(unpack(args))
+
+                task.wait(1)
+
+                currentTower = workspace.Towers:FindFirstChild(towerName1)
+
+                if currentTower then
+                    currentStage = 1
+                    placedCount += 1
+                    print("📌 MAP B วางแล้ว ("..placedCount.."/15)")
+                end
+            end
+
+            --================ UPGRADE 1 =================--
+            if currentStage == 1 and money >= 1000 and currentTower then
+
+                SpawnTower:InvokeServer(towerName2, basePos, currentTower)
+                task.wait(1)
+
+                currentTower = workspace.Towers:FindFirstChild(towerName2)
+                currentStage = 2
+            end
+
+            --================ UPGRADE 2 =================--
+            if currentStage == 2 and money >= 2000 and currentTower then
+
+                SpawnTower:InvokeServer(towerName3, basePos, currentTower)
+                task.wait(1)
+
+                currentTower = workspace.Towers:FindFirstChild(towerName3)
+                currentStage = 3
+            end
+
+            --================ UPGRADE 3 =================--
+            if currentStage == 3 and money >= 5000 and currentTower then
+
+                SpawnTower:InvokeServer(towerName4, basePos, currentTower)
+                task.wait(1)
+
+                currentTower = workspace.Towers:FindFirstChild(towerName4)
+                currentStage = 4
+            end
+
+            --================ RESET =================--
+            if currentStage == 4 then
+                currentStage = 0
+                currentTower = nil
+            end
+        end
+    end)
+
+end
