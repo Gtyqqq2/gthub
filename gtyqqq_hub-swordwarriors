@@ -754,7 +754,7 @@ end
 -- ================= COOLDOWN LOOP SLIDER =================
 local cooldownLabel = Instance.new("TextLabel", pageAuto)
 cooldownLabel.Size = UDim2.new(1,0,0,25)
-cooldownLabel.Position = UDim2.new(0,0,0,85) -- อยู่ใต้ปุ่ม
+cooldownLabel.Position = UDim2.new(0,0,0,85)
 cooldownLabel.Text = "Cooldown Loop: 0.1s"
 cooldownLabel.TextColor3 = Color3.fromRGB(255,0,0)
 cooldownLabel.BackgroundTransparency = 1
@@ -787,13 +787,13 @@ cooldownBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
 cooldownBox.TextColor3 = Color3.new(102,255,178)
 Instance.new("UICorner", cooldownBox)
 
--- ================= Cooldown Loop FUNCTION =================
+-- ================= Cooldown FUNCTION =================
 local cooldown = 0.1
 local draggingCooldown = false
 
 local function setCooldown(n)
     n = math.clamp(n, 0.1, 10)
-    n = math.floor(n*2)/2 -- ปรับทีละ 0.5
+    n = math.floor(n*2)/2
     cooldown = n
     cooldownLabel.Text = "Cooldown Loop: "..n.."s"
 
@@ -839,24 +839,33 @@ end)
 
 setCooldown(0.1)
 
---================ AUTO SKILL LOOP =================--
+--================ AUTO SKILL (REMOTE VERSION) =================--
+local Remote = game:GetService("ReplicatedStorage")
+    :WaitForChild("CurRemotes")
+    :WaitForChild("SkillEvent")
+
+local skillMap = {
+    Q = "CheckSkillQ",
+    E = "CheckSkillE",
+    R = "CheckSkillR",
+    F = "CheckSkillF"
+}
+
 task.spawn(function()
-    local VirtualInput = game:GetService("VirtualInputManager")
-    while task.wait(cooldown) do -- ใช้ค่า cooldown จาก slider
-        local char = player.Character
-        if char then
-            for skill, enabled in pairs(skillToggles) do
-                if enabled then
+    while true do
+        if player.Character then
+            for _, skill in ipairs({"Q","E","R","F"}) do
+                if skillToggles[skill] then
                     pcall(function()
-                        VirtualInput:SendKeyEvent(true, skill, false, game)
-                        VirtualInput:SendKeyEvent(false, skill, false, game)
+                        Remote:FireServer(skillMap[skill])
                     end)
+                    task.wait(cooldown) -- 🎚 ใช้ slider คุม delay
                 end
             end
         end
+        task.wait(0.01)
     end
 end)
-
 --================ REMOVE EFFECTS UI =================--
 local effectFrame = Instance.new("Frame", pageSetting)
 effectFrame.Size = UDim2.new(0.9,0,0,40)
