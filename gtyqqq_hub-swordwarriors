@@ -54,7 +54,7 @@ menu.BackgroundColor3 = Color3.fromRGB(25,25,25)
 menu.BackgroundTransparency = 0.2
 Instance.new("UICorner", menu)
 
-menu.CanvasSize = UDim2.new(0,0,0,360) -- 🔥 เพิ่มความสูงรองรับปุ่มใหม่
+menu.CanvasSize = UDim2.new(0,0,0,290) -- 🔥 เพิ่มความสูงรองรับปุ่มใหม่
 menu.ScrollBarThickness = 6
 menu.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 menu.ScrollBarImageColor3 = Color3.fromRGB(180,180,180)
@@ -96,21 +96,30 @@ pageMain.Size = UDim2.new(1,0,1,0)
 pageMain.BackgroundTransparency = 1
 pageMain.Visible = true
 
+
 -- 🔽 หน้าเดิม
 local pageAura = Instance.new("Frame", pages)
 pageAura.Size = UDim2.new(1,0,1,0)
 pageAura.BackgroundTransparency = 1
 pageAura.Visible = false
 
+
 local pageTeleport = Instance.new("Frame", pages)
 pageTeleport.Size = UDim2.new(1,0,1,0)
 pageTeleport.BackgroundTransparency = 1
 pageTeleport.Visible = false
 
-local pageAuto = Instance.new("Frame", pages)
+
+local pageAuto = Instance.new("ScrollingFrame", pages)
 pageAuto.Size = UDim2.new(1,0,1,0)
 pageAuto.BackgroundTransparency = 1
 pageAuto.Visible = false
+-- 🔥 เพิ่ม scroll
+pageAuto.CanvasSize = UDim2.new(0,0,0,450) -- ปรับได้ตามความยาว UI
+pageAuto.ScrollBarThickness = 6
+pageAuto.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+pageAuto.ScrollBarImageColor3 = Color3.fromRGB(180,180,180)
+
 
 local pageSetting = Instance.new("Frame", pages)
 pageSetting.Size = UDim2.new(1,0,1,0)
@@ -866,6 +875,184 @@ task.spawn(function()
         task.wait(0.01)
     end
 end)
+
+--================ AUTO UPGRADE UI =================--
+local upgradeLabel = Instance.new("TextLabel", pageAuto)
+upgradeLabel.Size = UDim2.new(1,0,0,25)
+upgradeLabel.Position = UDim2.new(0,0,0,140)
+upgradeLabel.Text = "auto upgrade"
+upgradeLabel.TextColor3 = Color3.fromRGB(255,255,255)
+upgradeLabel.BackgroundTransparency = 1
+upgradeLabel.Font = Enum.Font.GothamBold
+upgradeLabel.TextSize = 16
+upgradeLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+--================ FUNCTION CREATE =================--
+local function createUpgradeToggle(name, yPos)
+    local frame = Instance.new("Frame", pageAuto)
+    frame.Size = UDim2.new(0.9,0,0,40)
+    frame.Position = UDim2.new(0.05,0,0,yPos)
+    frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    Instance.new("UICorner", frame)
+
+    local label = Instance.new("TextLabel", frame)
+    label.Size = UDim2.new(0.7,0,1,0)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = Color3.new(1,1,1)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local toggle = Instance.new("TextButton", frame)
+    toggle.Size = UDim2.new(0.3,0,1,0)
+    toggle.Position = UDim2.new(0.7,0,0,0)
+    toggle.Text = "OFF"
+    toggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+    toggle.TextColor3 = Color3.new(1,1,1)
+    toggle.Font = Enum.Font.GothamBold
+    toggle.TextSize = 14
+    Instance.new("UICorner", toggle)
+
+    local state = false
+
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        toggle.Text = state and "ON" or "OFF"
+        toggle.BackgroundColor3 = state and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+    end)
+
+    return function()
+        return state
+    end
+end
+
+--================ CREATE 4 TOGGLES =================--
+local getHP = createUpgradeToggle("HP", 170)
+local getATK = createUpgradeToggle("Attack", 220)
+local getSPD = createUpgradeToggle("Speed", 270)
+local getCRT = createUpgradeToggle("Crit", 320)
+
+--================ AUTO UPGRADE LOGIC =================--
+local upgradeRemote = game:GetService("ReplicatedStorage")
+    :WaitForChild("CurRemotes")
+    :WaitForChild("DataChange_Points")
+
+task.spawn(function()
+    while true do
+        if player.Character then
+
+            -- HP
+            if getHP() then
+                pcall(function()
+                    upgradeRemote:FireServer("ClickPoints", {
+                        ["Points"] = 1,
+                        ["Obj"] = "GHealth"
+                    })
+                end)
+                task.wait(0.01)
+            end
+
+            -- Attack
+            if getATK() then
+                pcall(function()
+                    upgradeRemote:FireServer("ClickPoints", {
+                        ["Points"] = 1,
+                        ["Obj"] = "GDamage"
+                    })
+                end)
+                task.wait(0.01)
+            end
+
+            -- Speed
+            if getSPD() then
+                pcall(function()
+                    upgradeRemote:FireServer("ClickPoints", {
+                        ["Points"] = 1,
+                        ["Obj"] = "GSpeed"
+                    })
+                end)
+                task.wait(0.01)
+            end
+
+            -- Crit
+            if getCRT() then
+                pcall(function()
+                    upgradeRemote:FireServer("ClickPoints", {
+                        ["Points"] = 1,
+                        ["Obj"] = "GCriticalHit"
+                    })
+                end)
+                task.wait(0.01)
+            end
+
+        end
+        task.wait(0.01)
+    end
+end)
+
+--================ REBIRTH UI (APPEND MODE) =================--
+local rebirthLabel = Instance.new("TextLabel", pageAuto)
+rebirthLabel.Size = UDim2.new(1,0,0,25)
+rebirthLabel.Position = UDim2.new(0,0,0,370)
+rebirthLabel.Text = "rebirth"
+rebirthLabel.TextColor3 = Color3.fromRGB(255,255,255)
+rebirthLabel.BackgroundTransparency = 1
+rebirthLabel.Font = Enum.Font.GothamBold
+rebirthLabel.TextSize = 16
+rebirthLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+local rebirthFrame = Instance.new("Frame", pageAuto)
+rebirthFrame.Size = UDim2.new(0.9,0,0,40)
+rebirthFrame.Position = UDim2.new(0.05,0,0,400)
+rebirthFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", rebirthFrame)
+
+local rebirthText = Instance.new("TextLabel", rebirthFrame)
+rebirthText.Size = UDim2.new(0.7,0,1,0)
+rebirthText.BackgroundTransparency = 1
+rebirthText.Text = "rebirth"
+rebirthText.TextColor3 = Color3.new(1,1,1)
+rebirthText.Font = Enum.Font.GothamBold
+rebirthText.TextSize = 16
+rebirthText.TextXAlignment = Enum.TextXAlignment.Left
+
+local rebirthToggle = Instance.new("TextButton", rebirthFrame)
+rebirthToggle.Size = UDim2.new(0.3,0,1,0)
+rebirthToggle.Position = UDim2.new(0.7,0,0,0)
+rebirthToggle.Text = "OFF"
+rebirthToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+rebirthToggle.TextColor3 = Color3.new(1,1,1)
+rebirthToggle.Font = Enum.Font.GothamBold
+rebirthToggle.TextSize = 14
+Instance.new("UICorner", rebirthToggle)
+
+local rebirthEnabled = false
+
+rebirthToggle.MouseButton1Click:Connect(function()
+    rebirthEnabled = not rebirthEnabled
+    rebirthToggle.Text = rebirthEnabled and "ON" or "OFF"
+    rebirthToggle.BackgroundColor3 = rebirthEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+end)
+
+--================ REBIRTH LOOP =================--
+local rebirthRemote = game:GetService("ReplicatedStorage")
+    :WaitForChild("CurRemotes")
+    :WaitForChild("DataChange_Rebirth")
+
+task.spawn(function()
+    while true do
+        if rebirthEnabled and player.Character then
+            pcall(function()
+                rebirthRemote:FireServer("rebirth")
+            end)
+            task.wait(5)
+        else
+            task.wait(0.2)
+        end
+    end
+end)
+
 --================ REMOVE EFFECTS UI =================--
 local effectFrame = Instance.new("Frame", pageSetting)
 effectFrame.Size = UDim2.new(0.9,0,0,40)
