@@ -993,7 +993,7 @@ task.spawn(function()
 
             end
         else
-            task.wait(0.2)
+            task.wait(0.5)
         end
 
         task.wait(0.01)
