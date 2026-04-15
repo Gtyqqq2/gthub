@@ -938,55 +938,64 @@ local upgradeRemote = game:GetService("ReplicatedStorage")
     :WaitForChild("CurRemotes")
     :WaitForChild("DataChange_Points")
 
+--================ POINT =================--
+local point = player.PlayerGui
+    :WaitForChild("MainGui")
+    :WaitForChild("MainFrame")
+    :WaitForChild("MenuFrame")
+    :WaitForChild("Upgrade")
+    :WaitForChild("New")
+    :WaitForChild("data")
+
+--================ GET POINT =================--
+local function getPoint()
+    local val = 0
+
+    pcall(function()
+        if point:IsA("TextLabel") then
+            val = tonumber(point.Text) or 0
+        else
+            val = tonumber(point.Value) or 0
+        end
+    end)
+
+    return val
+end
+
+--================ AUTO UPGRADE =================--
 task.spawn(function()
     while true do
-        if player.Character then
 
-            -- HP
-            if getHP() then
-                pcall(function()
-                    upgradeRemote:FireServer("ClickPoints", {
-                        ["Points"] = 1,
-                        ["Obj"] = "GHealth"
-                    })
-                end)
-                task.wait(0.01)
+        local p = getPoint()
+
+        if p > 1 then
+            if player.Character then
+
+                if getHP() and getPoint() > 1 then
+                    upgradeRemote:FireServer("ClickPoints", {Points = 1, Obj = "GHealth"})
+                    task.wait(0.01)
+                end
+
+                if getATK() and getPoint() > 1 then
+                    upgradeRemote:FireServer("ClickPoints", {Points = 1, Obj = "GDamage"})
+                    task.wait(0.01)
+                end
+
+                if getSPD() and getPoint() > 1 then
+                    upgradeRemote:FireServer("ClickPoints", {Points = 1, Obj = "GSpeed"})
+                    task.wait(0.01)
+                end
+
+                if getCRT() and getPoint() > 1 then
+                    upgradeRemote:FireServer("ClickPoints", {Points = 1, Obj = "GCriticalHit"})
+                    task.wait(0.01)
+                end
+
             end
-
-            -- Attack
-            if getATK() then
-                pcall(function()
-                    upgradeRemote:FireServer("ClickPoints", {
-                        ["Points"] = 1,
-                        ["Obj"] = "GDamage"
-                    })
-                end)
-                task.wait(0.01)
-            end
-
-            -- Speed
-            if getSPD() then
-                pcall(function()
-                    upgradeRemote:FireServer("ClickPoints", {
-                        ["Points"] = 1,
-                        ["Obj"] = "GSpeed"
-                    })
-                end)
-                task.wait(0.01)
-            end
-
-            -- Crit
-            if getCRT() then
-                pcall(function()
-                    upgradeRemote:FireServer("ClickPoints", {
-                        ["Points"] = 1,
-                        ["Obj"] = "GCriticalHit"
-                    })
-                end)
-                task.wait(0.01)
-            end
-
+        else
+            task.wait(0.2)
         end
+
         task.wait(0.01)
     end
 end)
