@@ -1,1 +1,1421 @@
+--[[
+                 👾 Abyss Hub 👾 
+- complete ( fly lock / pull monster / kill aura / auto skill ) 
+wait for update auto upgrade and rebirth
+             this is sword warriors 
+     📢 This script has been optimized yet 📢
+]]
 
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local remote = ReplicatedStorage:WaitForChild("CurRemotes"):WaitForChild("MonsterEvent")
+
+--================ GUI =================--
+local mainGui = Instance.new("ScreenGui", game.CoreGui)
+mainGui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", mainGui)
+frame.Size = UDim2.new(0, 320, 0, 240)
+frame.Position = UDim2.new(0.5, -160, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.BackgroundTransparency = 0.1
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,16)
+
+local gradMain = Instance.new("UIGradient", frame)
+gradMain.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(117,164,206)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(123,201,201)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(224,138,175))
+}
+gradMain.Rotation = 45
+
+--================ HEADER =================--
+local header = Instance.new("TextLabel", frame)
+header.Size = UDim2.new(1,0,0,30)
+header.Position = UDim2.new(0,0,0,0)
+header.Text = "👾 Abyss hub 👾"
+header.TextColor3 = Color3.fromRGB(255,255,255)
+header.BackgroundTransparency = 1
+header.Font = Enum.Font.GothamBold
+header.TextSize = 18
+
+--================ MENU =================--
+local menu = Instance.new("ScrollingFrame", frame)
+menu.Size = UDim2.new(0,85,1,-65)
+menu.Position = UDim2.new(0,10,0,40)
+menu.BackgroundColor3 = Color3.fromRGB(25,25,25)
+menu.BackgroundTransparency = 0.2
+Instance.new("UICorner", menu)
+
+menu.CanvasSize = UDim2.new(0,0,0,290) -- 🔥 เพิ่มความสูงรองรับปุ่มใหม่
+menu.ScrollBarThickness = 6
+menu.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+menu.ScrollBarImageColor3 = Color3.fromRGB(180,180,180)
+
+local function makeButton(parent, text, yOffset)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0.9, 0, 0, 45)
+    b.Position = UDim2.new(0.05, 0, 0, yOffset)
+    b.Text = text
+    b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    b.TextColor3 = Color3.new(1, 1, 1)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 14
+    b.Parent = parent
+    Instance.new("UICorner", b)
+    return b
+end
+
+-- 🔥 เพิ่มปุ่ม Main บนสุด
+local btnMain = makeButton(menu,"Main",15)
+
+-- 🔽 เลื่อนปุ่มเดิมลงทั้งหมด
+local btnAura = makeButton(menu,"Aura",70)
+local btnTeleport = makeButton(menu,"Teleport",125)
+local btnAuto = makeButton(menu,"Auto",180)
+local btnSetting = makeButton(menu,"Setting",235)
+
+---
+
+--================ PAGE =================--
+local pages = Instance.new("Frame", frame)
+pages.Size = UDim2.new(1,-110,1,-40)
+pages.Position = UDim2.new(0,100,0,40)
+pages.BackgroundTransparency = 1
+
+-- 🔥 หน้าใหม่ (หน้าแรก)
+local pageMain = Instance.new("Frame", pages)
+pageMain.Size = UDim2.new(1,0,1,0)
+pageMain.BackgroundTransparency = 1
+pageMain.Visible = true
+
+
+-- 🔽 หน้าเดิม
+local pageAura = Instance.new("Frame", pages)
+pageAura.Size = UDim2.new(1,0,1,0)
+pageAura.BackgroundTransparency = 1
+pageAura.Visible = false
+
+
+local pageTeleport = Instance.new("Frame", pages)
+pageTeleport.Size = UDim2.new(1,0,1,0)
+pageTeleport.BackgroundTransparency = 1
+pageTeleport.Visible = false
+
+
+local pageAuto = Instance.new("ScrollingFrame", pages)
+pageAuto.Size = UDim2.new(1,0,1,0)
+pageAuto.BackgroundTransparency = 1
+pageAuto.Visible = false
+-- 🔥 เพิ่ม scroll
+pageAuto.CanvasSize = UDim2.new(0,0,0,450) -- ปรับได้ตามความยาว UI
+pageAuto.ScrollBarThickness = 6
+pageAuto.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+pageAuto.ScrollBarImageColor3 = Color3.fromRGB(180,180,180)
+
+
+local pageSetting = Instance.new("Frame", pages)
+pageSetting.Size = UDim2.new(1,0,1,0)
+pageSetting.BackgroundTransparency = 1
+pageSetting.Visible = false
+
+--================ FLY LOCK UI =================--
+local flyLockFrame = Instance.new("Frame", pageTeleport)
+flyLockFrame.Size = UDim2.new(0.9,0,0,40)
+flyLockFrame.Position = UDim2.new(0.05,0,0,10)
+flyLockFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", flyLockFrame)
+
+local flyLockLabel = Instance.new("TextLabel", flyLockFrame)
+flyLockLabel.Size = UDim2.new(0.7,0,1,0)
+flyLockLabel.Position = UDim2.new(0,0,0,0)
+flyLockLabel.Text = "Fly Lock(careful)"
+flyLockLabel.TextColor3 = Color3.fromRGB(255,255,255)
+flyLockLabel.BackgroundTransparency = 1
+flyLockLabel.Font = Enum.Font.GothamBold
+flyLockLabel.TextSize = 16
+flyLockLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local flyLockToggle = Instance.new("TextButton", flyLockFrame)
+flyLockToggle.Size = UDim2.new(0.3,0,1,0)
+flyLockToggle.Position = UDim2.new(0.7,0,0,0)
+flyLockToggle.Text = "OFF"
+flyLockToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+flyLockToggle.TextColor3 = Color3.new(1,1,1)
+flyLockToggle.Font = Enum.Font.GothamBold
+flyLockToggle.TextSize = 14
+Instance.new("UICorner", flyLockToggle)
+
+--================ AURA TOGGLE =================--
+local toggle = Instance.new("TextButton", pageAura)
+toggle.Size = UDim2.new(0.8,0,0,40)
+toggle.Position = UDim2.new(0.1,0,0,10)
+toggle.Text = "OFF"
+toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
+toggle.TextColor3 = Color3.new(1,1,1)
+toggle.Font = Enum.Font.GothamBold
+toggle.TextSize = 15
+Instance.new("UICorner", toggle)
+
+--================ AURA VALUES =================--
+local range = 200
+local speed = 0.01
+
+--================ AURA LABELS =================--
+local label = Instance.new("TextLabel", pageAura)
+label.Size = UDim2.new(1,0,0,25)
+label.Position = UDim2.new(0,0,0,60)
+label.Text = "Range: 200"
+label.TextColor3 = Color3.fromRGB(102,255,178)
+label.BackgroundTransparency = 1
+
+local speedLabel = Instance.new("TextLabel", pageAura)
+speedLabel.Size = UDim2.new(1,0,0,25)
+speedLabel.Position = UDim2.new(0,0,0,115)
+speedLabel.Text = "Speed: 0.01"
+speedLabel.TextColor3 = Color3.fromRGB(255,200,0)
+speedLabel.BackgroundTransparency = 1
+
+--================ RANGE SLIDER =================--
+local track = Instance.new("Frame", pageAura)
+track.Size = UDim2.new(0.6,0,0,12)
+track.Position = UDim2.new(0.05,0,0,85)
+track.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner", track)
+
+local fill = Instance.new("Frame", track)
+fill.Size = UDim2.new(1,0,1,0)
+fill.BackgroundColor3 = Color3.fromRGB(102,255,178)
+Instance.new("UICorner", fill)
+
+local knob = Instance.new("Frame", track)
+knob.Size = UDim2.new(0,18,0,18)
+knob.AnchorPoint = Vector2.new(0.5,0.5)
+knob.Position = UDim2.new(1,0,0.5,0)
+knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+Instance.new("UICorner", knob)
+
+--================ SPEED SLIDER =================--
+local speedTrack = Instance.new("Frame", pageAura)
+speedTrack.Size = UDim2.new(0.6,0,0,12)
+speedTrack.Position = UDim2.new(0.05,0,0,140)
+speedTrack.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner", speedTrack)
+
+local speedFill = Instance.new("Frame", speedTrack)
+speedFill.Size = UDim2.new(0,0,1,0)
+speedFill.BackgroundColor3 = Color3.fromRGB(255,200,0)
+Instance.new("UICorner", speedFill)
+
+local speedKnob = Instance.new("Frame", speedTrack)
+speedKnob.Size = UDim2.new(0,18,0,18)
+speedKnob.AnchorPoint = Vector2.new(0.5,0.5)
+speedKnob.Position = UDim2.new(0,0,0.5,0)
+speedKnob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+Instance.new("UICorner", speedKnob)
+
+--================ INPUT BOX =================--
+local rangeBox = Instance.new("TextBox", pageAura)
+rangeBox.Size = UDim2.new(0.25,-5,0,25)
+rangeBox.Position = UDim2.new(0.7,0,0,78)
+rangeBox.Text = "200"
+rangeBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
+rangeBox.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", rangeBox)
+
+local speedBox = Instance.new("TextBox", pageAura)
+speedBox.Size = UDim2.new(0.25,-5,0,25)
+speedBox.Position = UDim2.new(0.7,0,0,133)
+speedBox.Text = "0.01"
+speedBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
+speedBox.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", speedBox)
+
+--================ FUNCTIONS =================--
+local function setRange(n)
+    n = math.clamp(n, 0, 200)
+    range = n
+    label.Text = "Range: "..n
+
+    local rel = n/200
+    knob.Position = UDim2.new(rel,0,0.5,0)
+    fill.Size = UDim2.new(rel,0,1,0)
+
+    rangeBox.Text = tostring(n)
+end
+
+local function setSpeed(n)
+    n = math.clamp(n, 0.01, 0.1)
+    speed = n
+    speedLabel.Text = string.format("Speed: %.2f", n)
+
+    local rel = (n-0.01)/0.09
+    speedKnob.Position = UDim2.new(rel,0,0.5,0)
+    speedFill.Size = UDim2.new(rel,0,1,0)
+
+    speedBox.Text = string.format("%.2f", n)
+end
+
+--================ DRAG =================--
+local dragging = false
+local draggingSpeed = false
+
+local function updateRangeFromPos(x)
+    local rel = math.clamp((x - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+    setRange(math.floor(rel * 200))
+end
+
+local function updateSpeedFromPos(x)
+    local rel = math.clamp((x - speedTrack.AbsolutePosition.X) / speedTrack.AbsoluteSize.X, 0, 1)
+    setSpeed(0.01 + rel * 0.09)
+end
+
+track.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        updateRangeFromPos(i.Position.X)
+    end
+end)
+
+speedTrack.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingSpeed = true
+        updateSpeedFromPos(i.Position.X)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseMovement then
+        if dragging then updateRangeFromPos(i.Position.X) end
+        if draggingSpeed then updateSpeedFromPos(i.Position.X) end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+        draggingSpeed = false
+    end
+end)
+
+rangeBox.FocusLost:Connect(function()
+    setRange(tonumber(rangeBox.Text) or range)
+end)
+
+speedBox.FocusLost:Connect(function()
+    setSpeed(tonumber(speedBox.Text) or speed)
+end)
+
+--================ AURA HYBRID (SYNC SLIDER) =================--
+local enabled = false
+local hrp
+
+local function updateHRP()
+    local char = player.Character or player.CharacterAdded:Wait()
+    hrp = char:WaitForChild("HumanoidRootPart")
+end
+
+updateHRP()
+player.CharacterAdded:Connect(updateHRP)
+
+--================ MONSTER CACHE ( AURA + Monster PULL )=================--
+local monsters = {}
+
+local function updateMonsters()
+    local new = {}
+
+    for _, m in pairs(workspace:GetDescendants()) do
+        local h = m:FindFirstChildOfClass("Humanoid")
+        local r = m:FindFirstChild("HumanoidRootPart")
+
+        if h and r then
+            table.insert(new, m)
+        end
+    end
+
+    monsters = new
+end
+
+-- 🔁 อัปเดตมอน (ช้า = ไม่แลค)
+task.spawn(function()
+    while true do
+        if enabled then
+            updateMonsters()
+        end
+        task.wait(0.7)
+    end
+end)
+
+--================ ATTACK LOOP (FIXED FAST) =================--
+task.spawn(function()
+    local lastHit = 0
+    local index = 1
+
+    while true do
+        if enabled and hrp then
+            RunService.Heartbeat:Wait()
+
+            local now = tick()
+
+            if now - lastHit >= speed then
+                lastHit = now
+
+                local hrpPos = hrp.Position
+                local rangeSq = range * range
+                local list = monsters
+
+                if #list > 0 then
+                    -- 🔥 เพิ่มความเร็ว: ยิงหลายตัวต่อรอบ
+                    for i = 1, 10 do
+                        local m = list[index]
+
+                        if not m then break end
+
+                        local h = m:FindFirstChildOfClass("Humanoid")
+                        local r = m:FindFirstChild("HumanoidRootPart")
+
+                        if h and r and h.Health > 0 then
+                            local diff = hrpPos - r.Position
+                            if (diff.X*diff.X + diff.Y*diff.Y + diff.Z*diff.Z) <= rangeSq then
+                                remote:FireServer("DamToMonster", m, {damtype = "normal"})
+                            end
+                        end
+
+                        index += 1
+                        if index > #list then
+                            index = 1
+                        end
+                    end
+                end
+            end
+        else
+            RunService.Heartbeat:Wait()
+        end
+    end
+end)
+
+--================ TOGGLE =================--
+toggle.MouseButton1Click:Connect(function()
+    enabled = not enabled
+    toggle.Text = enabled and "ON" or "OFF"
+    toggle.BackgroundColor3 = enabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(50,50,50)
+end)
+
+--================ HIGH UI =================--
+local highLabel = Instance.new("TextLabel", pageTeleport)
+highLabel.Size = UDim2.new(1,0,0,25)
+highLabel.Position = UDim2.new(0,0,0,50)
+highLabel.Text = "High: 35"
+highLabel.TextColor3 = Color3.fromRGB(0,170,255)
+highLabel.BackgroundTransparency = 1
+
+local highTrack = Instance.new("Frame", pageTeleport)
+highTrack.Size = UDim2.new(0.6,0,0,12)
+highTrack.Position = UDim2.new(0.05,0,0,75)
+highTrack.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner", highTrack)
+
+local highFill = Instance.new("Frame", highTrack)
+highFill.Size = UDim2.new(0,0,1,0)
+highFill.BackgroundColor3 = Color3.fromRGB(0,170,255)
+Instance.new("UICorner", highFill)
+
+local highKnob = Instance.new("Frame", highTrack)
+highKnob.Size = UDim2.new(0,18,0,18)
+highKnob.AnchorPoint = Vector2.new(0.5,0.5)
+highKnob.Position = UDim2.new(0,0,0.5,0)
+highKnob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+Instance.new("UICorner", highKnob)
+
+local highBox = Instance.new("TextBox", pageTeleport)
+highBox.Size = UDim2.new(0.25,-5,0,25)
+highBox.Position = UDim2.new(0.7,0,0,68)
+highBox.Text = "35"
+highBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
+highBox.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", highBox)
+
+--================ VALUES =================--
+local high = 35
+local targetY = nil -- 🔥 ตัวสำคัญ (ใช้กับ PART 2)
+local draggingHigh = false
+
+--================ FUNCTION =================--
+local function setHigh(n)
+    n = math.clamp(n,10,50)
+    high = n
+    highLabel.Text = "High: "..n
+
+    local rel = (n-10)/40
+    highKnob.Position = UDim2.new(rel,0,0.5,0)
+    highFill.Size = UDim2.new(rel,0,1,0)
+
+    highBox.Text = tostring(n)
+
+    -- 🔥 อัปเดตความสูงทันที (แก้บัคสไลด์)
+    if flyEnabled and hrp then
+        targetY = hrp.Position.Y + high
+    end
+end
+
+--================ DRAG =================--
+local function updateHighFromPos(x)
+    local rel = math.clamp((x - highTrack.AbsolutePosition.X) / highTrack.AbsoluteSize.X, 0, 1)
+    setHigh(math.floor(10 + rel * 40))
+end
+
+local function startDrag(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingHigh = true
+        updateHighFromPos(i.Position.X)
+    end
+end
+
+highTrack.InputBegan:Connect(startDrag)
+highFill.InputBegan:Connect(startDrag)
+highKnob.InputBegan:Connect(startDrag)
+
+UserInputService.InputChanged:Connect(function(i)
+    if draggingHigh and i.UserInputType == Enum.UserInputType.MouseMovement then
+        updateHighFromPos(i.Position.X)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingHigh = false
+    end
+end)
+
+highBox.FocusLost:Connect(function()
+    local n = tonumber(highBox.Text) or high
+    setHigh(n)
+end)
+
+setHigh(35)
+
+--================ FLY SYSTEM (ABSOLUTE HEIGHT) =================--
+local flyEnabled = false
+local baseY = nil -- 🔥 จุดสำคัญ
+
+flyLockToggle.MouseButton1Click:Connect(function()
+    flyEnabled = not flyEnabled
+    flyLockToggle.Text = flyEnabled and "ON" or "OFF"
+    flyLockToggle.BackgroundColor3 = flyEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+
+    if flyEnabled and hrp then
+        baseY = hrp.Position.Y -- 🔥 จำพื้นตอนเปิด
+    else
+        baseY = nil
+    end
+end)
+
+--================ SMOOTH LOCK =================--
+RunService.RenderStepped:Connect(function()
+    if flyEnabled and hrp and baseY then
+        local currentPos = hrp.Position
+
+        -- 🔥 เป้าหมายจริง = พื้น + slider
+        local goalY = baseY + high
+
+        local goalPos = Vector3.new(currentPos.X, goalY, currentPos.Z)
+
+        -- 🔥 สมูท
+        local newPos = currentPos:Lerp(goalPos, 0.2)
+
+        hrp.AssemblyLinearVelocity = Vector3.zero
+        hrp.AssemblyAngularVelocity = Vector3.zero
+
+        hrp.CFrame = CFrame.new(newPos)
+    end
+end)
+
+--================ RESET =================--
+player.CharacterAdded:Connect(function()
+    task.wait(1)
+    updateHRP()
+
+    if flyEnabled and hrp then
+        baseY = hrp.Position.Y
+    end
+end)
+
+--================ MONSTER PULL UI =================--
+local pullEnabled = false
+local pullDistance = 20
+local pullRange = 150
+
+-- UI Frame
+local pullFrame = Instance.new("Frame", pageTeleport)
+pullFrame.Size = UDim2.new(0.9,0,0,40)
+pullFrame.Position = UDim2.new(0.05,0,0,102)
+pullFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", pullFrame)
+
+-- Label
+local pullLabel = Instance.new("TextLabel", pullFrame)
+pullLabel.Size = UDim2.new(0.7,0,1,0)
+pullLabel.BackgroundTransparency = 1
+pullLabel.Text = "Monster Pull"
+pullLabel.TextColor3 = Color3.new(1,1,1)
+pullLabel.Font = Enum.Font.GothamBold
+pullLabel.TextSize = 16
+pullLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Toggle
+local pullToggle = Instance.new("TextButton", pullFrame)
+pullToggle.Size = UDim2.new(0.3,0,1,0)
+pullToggle.Position = UDim2.new(0.7,0,0,0)
+pullToggle.Text = "OFF"
+pullToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+pullToggle.TextColor3 = Color3.new(1,1,1)
+pullToggle.Font = Enum.Font.GothamBold
+pullToggle.TextSize = 14
+Instance.new("UICorner", pullToggle)
+
+pullToggle.MouseButton1Click:Connect(function()
+    pullEnabled = not pullEnabled
+    pullToggle.Text = pullEnabled and "ON" or "OFF"
+    pullToggle.BackgroundColor3 = pullEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+end)
+
+-- Distance Slider UI
+local distLabel = Instance.new("TextLabel", pageTeleport)
+distLabel.Size = UDim2.new(1,0,0,25)
+distLabel.Position = UDim2.new(0,0,0,142)
+distLabel.Text = "Distance: 20"
+distLabel.TextColor3 = Color3.fromRGB(255,105,180)
+distLabel.BackgroundTransparency = 1
+distLabel.Font = Enum.Font.Gotham
+distLabel.TextSize = 12
+
+local distTrack = Instance.new("Frame", pageTeleport)
+distTrack.Size = UDim2.new(0.6,0,0,12)
+distTrack.Position = UDim2.new(0.05,0,0,165)
+distTrack.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner", distTrack)
+
+local distFill = Instance.new("Frame", distTrack)
+distFill.Size = UDim2.new(0,0,1,0)
+distFill.BackgroundColor3 = Color3.fromRGB(255,105,180)
+Instance.new("UICorner", distFill)
+
+local distKnob = Instance.new("Frame", distTrack)
+distKnob.Size = UDim2.new(0,18,0,18)
+distKnob.AnchorPoint = Vector2.new(0.5,0.5)
+distKnob.Position = UDim2.new(0,0,0.5,0)
+distKnob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+Instance.new("UICorner", distKnob)
+
+local distBox = Instance.new("TextBox", pageTeleport)
+distBox.Size = UDim2.new(0.25,-5,0,25)
+distBox.Position = UDim2.new(0.7,0,0,158)
+distBox.Text = "20"
+distBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
+distBox.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", distBox)
+
+--================ SLIDER LOGIC =================--
+local draggingDist = false
+
+local function setPullDistance(n)
+    n = math.clamp(math.floor(n),15,100) -- ปรับ range เป็น 15-100
+    pullDistance = n
+    distLabel.Text = "Distance: "..n
+
+    local rel = (n-15)/(100-15)
+    distBox.Text = tostring(n)
+    -- ใช้ Tween หรือ Lerp ให้ knob และ fill ขยับสมูท
+    distKnob:TweenPosition(UDim2.new(rel,0,0.5,0), "Out", "Sine", 0.1, true)
+    distFill:TweenSize(UDim2.new(rel,0,1,0), "Out", "Sine", 0.1, true)
+end
+
+local function updateDistFromPos(x)
+    local rel = math.clamp((x - distTrack.AbsolutePosition.X) / distTrack.AbsoluteSize.X, 0, 1)
+    setPullDistance(math.floor(15 + rel*(100-15)))
+end
+
+local function startDistDrag(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingDist = true
+        updateDistFromPos(i.Position.X)
+    end
+end
+
+distTrack.InputBegan:Connect(startDistDrag)
+distFill.InputBegan:Connect(startDistDrag)
+distKnob.InputBegan:Connect(startDistDrag)
+
+UserInputService.InputChanged:Connect(function(i)
+    if draggingDist and i.UserInputType == Enum.UserInputType.MouseMovement then
+        updateDistFromPos(i.Position.X)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingDist = false
+    end
+end)
+
+distBox.FocusLost:Connect(function()
+    local n = tonumber(distBox.Text) or pullDistance
+    setPullDistance(math.floor(n))
+end)
+
+setPullDistance(20)
+
+--================ MONSTER PULL LOGIC =================--
+task.spawn(function()
+    local lastUpdate = 0
+    local monsters = {}
+
+    while true do
+        task.wait(0.03)
+
+        if pullEnabled and hrp then
+            local now = tick()
+
+            -- 🔹 อัปเดตรายชื่อมอนทุก 0.5 วินาที
+            if now - lastUpdate >= 0.5 then
+                lastUpdate = now
+                local newList = {}
+
+                for _, m in pairs(workspace:GetDescendants()) do
+                    if m:IsA("Model") and not Players:GetPlayerFromCharacter(m) then
+                        local h = m:FindFirstChildOfClass("Humanoid")
+                        local r = m:FindFirstChild("HumanoidRootPart")
+
+                        if h and r and h.Health > 0 then
+                            if (hrp.Position - r.Position).Magnitude <= pullRange then
+                                table.insert(newList, r)
+                            end
+                        end
+                    end
+                end
+
+                monsters = newList
+            end
+
+            -- 🔥 ดึงมอน + หมุน 25 องศา
+            for _, r in ipairs(monsters) do
+
+                local targetPos = (hrp.CFrame * CFrame.new(0, 0, -pullDistance)).Position
+
+                -- หันเข้าหาผู้เล่น + หมุนเพิ่ม 25°
+                local baseCFrame = CFrame.new(targetPos, hrp.Position)
+                local offset = CFrame.Angles(0, math.rad(25), 0)
+
+                r.CFrame = baseCFrame * offset
+
+                r.AssemblyLinearVelocity = Vector3.zero
+                r.AssemblyAngularVelocity = Vector3.zero
+            end
+        end
+    end
+end)
+
+--================ AUTO SKILL GUI =================--
+local autoSkillLabel = Instance.new("TextLabel", pageAuto)
+autoSkillLabel.Size = UDim2.new(1,0,0,25)
+autoSkillLabel.Position = UDim2.new(0,50,0,10)
+autoSkillLabel.Text = "auto skill"
+autoSkillLabel.TextColor3 = Color3.fromRGB(255,255,255)
+autoSkillLabel.BackgroundTransparency = 1
+autoSkillLabel.Font = Enum.Font.GothamBold
+autoSkillLabel.TextSize = 16
+autoSkillLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local buttonsFrame = Instance.new("Frame", pageAuto)
+buttonsFrame.Size = UDim2.new(1,0,0,40)
+buttonsFrame.Position = UDim2.new(0,0,0,40)
+buttonsFrame.BackgroundTransparency = 1
+
+local skills = {"Q","E","R","F"}
+local skillToggles = {}
+
+for i, skill in ipairs(skills) do
+    local btn = Instance.new("TextButton", buttonsFrame)
+    btn.Size = UDim2.new(0.2, -5,1,0)
+    btn.Position = UDim2.new(0.2*(i-1), 5, 0,0)
+    btn.Text = skill.." OFF"
+    btn.BackgroundColor3 = Color3.fromRGB(100,100,100)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    Instance.new("UICorner", btn)
+    skillToggles[skill] = false
+
+    btn.MouseButton1Click:Connect(function()
+        skillToggles[skill] = not skillToggles[skill]
+        btn.Text = skill..(skillToggles[skill] and " ON" or " OFF")
+        btn.BackgroundColor3 = skillToggles[skill] and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+    end)
+end
+
+-- ================= COOLDOWN LOOP SLIDER =================
+local cooldownLabel = Instance.new("TextLabel", pageAuto)
+cooldownLabel.Size = UDim2.new(1,0,0,25)
+cooldownLabel.Position = UDim2.new(0,0,0,85)
+cooldownLabel.Text = "Cooldown Loop: 0.1s"
+cooldownLabel.TextColor3 = Color3.fromRGB(255,0,0)
+cooldownLabel.BackgroundTransparency = 1
+cooldownLabel.Font = Enum.Font.Gotham
+cooldownLabel.TextSize = 12
+
+local cooldownTrack = Instance.new("Frame", pageAuto)
+cooldownTrack.Size = UDim2.new(0.6,0,0,12)
+cooldownTrack.Position = UDim2.new(0.05,0,0,110)
+cooldownTrack.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner", cooldownTrack)
+
+local cooldownFill = Instance.new("Frame", cooldownTrack)
+cooldownFill.Size = UDim2.new(0,0,1,0)
+cooldownFill.BackgroundColor3 = Color3.fromRGB(255,0,0)
+Instance.new("UICorner", cooldownFill)
+
+local cooldownKnob = Instance.new("Frame", cooldownTrack)
+cooldownKnob.Size = UDim2.new(0,18,0,18)
+cooldownKnob.AnchorPoint = Vector2.new(0.5,0.5)
+cooldownKnob.Position = UDim2.new(0,0,0.5,0)
+cooldownKnob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+Instance.new("UICorner", cooldownKnob)
+
+local cooldownBox = Instance.new("TextBox", pageAuto)
+cooldownBox.Size = UDim2.new(0.25,-5,0,25)
+cooldownBox.Position = UDim2.new(0.7,0,0,103)
+cooldownBox.Text = "0.1"
+cooldownBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
+cooldownBox.TextColor3 = Color3.new(102,255,178)
+Instance.new("UICorner", cooldownBox)
+
+-- ================= Cooldown FUNCTION =================
+local cooldown = 0.1
+local draggingCooldown = false
+
+local function setCooldown(n)
+    n = math.clamp(n, 0.1, 10)
+    n = math.floor(n*2)/2
+    cooldown = n
+    cooldownLabel.Text = "Cooldown Loop: "..n.."s"
+
+    local rel = (n-0.1)/9.9
+    cooldownKnob.Position = UDim2.new(rel,0,0.5,0)
+    cooldownFill.Size = UDim2.new(rel,0,1,0)
+
+    cooldownBox.Text = tostring(n)
+end
+
+local function updateCooldownFromPos(x)
+    local rel = math.clamp((x - cooldownTrack.AbsolutePosition.X) / cooldownTrack.AbsoluteSize.X, 0, 1)
+    setCooldown(0.1 + rel * 9.9)
+end
+
+local function startCooldownDrag(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingCooldown = true
+        updateCooldownFromPos(i.Position.X)
+    end
+end
+
+cooldownTrack.InputBegan:Connect(startCooldownDrag)
+cooldownFill.InputBegan:Connect(startCooldownDrag)
+cooldownKnob.InputBegan:Connect(startCooldownDrag)
+
+UserInputService.InputChanged:Connect(function(i)
+    if draggingCooldown and i.UserInputType == Enum.UserInputType.MouseMovement then
+        updateCooldownFromPos(i.Position.X)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingCooldown = false
+    end
+end)
+
+cooldownBox.FocusLost:Connect(function()
+    local n = tonumber(cooldownBox.Text) or cooldown
+    setCooldown(n)
+end)
+
+setCooldown(0.1)
+
+--================ AUTO SKILL (REMOTE VERSION) =================--
+local Remote = game:GetService("ReplicatedStorage")
+    :WaitForChild("CurRemotes")
+    :WaitForChild("SkillEvent")
+
+local skillMap = {
+    Q = "CheckSkillQ",
+    E = "CheckSkillE",
+    R = "CheckSkillR",
+    F = "CheckSkillF"
+}
+
+task.spawn(function()
+    while true do
+        if player.Character then
+            for _, skill in ipairs({"Q","E","R","F"}) do
+                if skillToggles[skill] then
+                    pcall(function()
+                        Remote:FireServer(skillMap[skill])
+                    end)
+                    task.wait(cooldown) -- 🎚 ใช้ slider คุม delay
+                end
+            end
+        end
+        task.wait(0.01)
+    end
+end)
+
+--================ AUTO UPGRADE UI =================--
+local upgradeLabel = Instance.new("TextLabel", pageAuto)
+upgradeLabel.Size = UDim2.new(1,0,0,25)
+upgradeLabel.Position = UDim2.new(0,0,0,140)
+upgradeLabel.Text = "auto upgrade"
+upgradeLabel.TextColor3 = Color3.fromRGB(255,255,255)
+upgradeLabel.BackgroundTransparency = 1
+upgradeLabel.Font = Enum.Font.GothamBold
+upgradeLabel.TextSize = 16
+upgradeLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+--================ FUNCTION CREATE =================--
+local function createUpgradeToggle(name, yPos)
+    local frame = Instance.new("Frame", pageAuto)
+    frame.Size = UDim2.new(0.9,0,0,40)
+    frame.Position = UDim2.new(0.05,0,0,yPos)
+    frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    Instance.new("UICorner", frame)
+
+    local label = Instance.new("TextLabel", frame)
+    label.Size = UDim2.new(0.7,0,1,0)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = Color3.new(1,1,1)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local toggle = Instance.new("TextButton", frame)
+    toggle.Size = UDim2.new(0.3,0,1,0)
+    toggle.Position = UDim2.new(0.7,0,0,0)
+    toggle.Text = "OFF"
+    toggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+    toggle.TextColor3 = Color3.new(1,1,1)
+    toggle.Font = Enum.Font.GothamBold
+    toggle.TextSize = 14
+    Instance.new("UICorner", toggle)
+
+    local state = false
+
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        toggle.Text = state and "ON" or "OFF"
+        toggle.BackgroundColor3 = state and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+    end)
+
+    return function()
+        return state
+    end
+end
+
+--================ CREATE 4 TOGGLES =================--
+local getHP = createUpgradeToggle("HP", 170)
+local getATK = createUpgradeToggle("Attack", 220)
+local getSPD = createUpgradeToggle("Speed", 270)
+local getCRT = createUpgradeToggle("Crit", 320)
+
+--================ AUTO UPGRADE LOGIC =================--
+local upgradeRemote = game:GetService("ReplicatedStorage")
+    :WaitForChild("CurRemotes")
+    :WaitForChild("DataChange_Points")
+
+--================ POINT =================--
+local point = player.PlayerGui
+    :WaitForChild("MainGui")
+    :WaitForChild("MainFrame")
+    :WaitForChild("MenuFrame")
+    :WaitForChild("Upgrade")
+    :WaitForChild("New")
+    :WaitForChild("data")
+
+--================ GET POINT =================--
+local function getPoint()
+    local val = 0
+
+    pcall(function()
+        if point:IsA("TextLabel") then
+            val = tonumber(point.Text) or 0
+        else
+            val = tonumber(point.Value) or 0
+        end
+    end)
+
+    return val
+end
+
+--================ AUTO UPGRADE =================--
+task.spawn(function()
+    while true do
+
+        local p = getPoint()
+
+        if p > 1 then
+            if player.Character then
+
+                if getHP() and getPoint() > 1 then
+                    upgradeRemote:FireServer("ClickPoints", {Points = 1, Obj = "GHealth"})
+                    task.wait(0.01)
+                end
+
+                if getATK() and getPoint() > 1 then
+                    upgradeRemote:FireServer("ClickPoints", {Points = 1, Obj = "GDamage"})
+                    task.wait(0.01)
+                end
+
+                if getSPD() and getPoint() > 1 then
+                    upgradeRemote:FireServer("ClickPoints", {Points = 1, Obj = "GSpeed"})
+                    task.wait(0.01)
+                end
+
+                if getCRT() and getPoint() > 1 then
+                    upgradeRemote:FireServer("ClickPoints", {Points = 1, Obj = "GCriticalHit"})
+                    task.wait(0.01)
+                end
+
+            end
+        else
+            task.wait(0.5)
+        end
+
+        task.wait(0.01)
+    end
+end)
+
+--================ REBIRTH UI (APPEND MODE) =================--
+local rebirthLabel = Instance.new("TextLabel", pageAuto)
+rebirthLabel.Size = UDim2.new(1,0,0,25)
+rebirthLabel.Position = UDim2.new(0,0,0,370)
+rebirthLabel.Text = "rebirth"
+rebirthLabel.TextColor3 = Color3.fromRGB(255,255,255)
+rebirthLabel.BackgroundTransparency = 1
+rebirthLabel.Font = Enum.Font.GothamBold
+rebirthLabel.TextSize = 16
+rebirthLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+local rebirthFrame = Instance.new("Frame", pageAuto)
+rebirthFrame.Size = UDim2.new(0.9,0,0,40)
+rebirthFrame.Position = UDim2.new(0.05,0,0,400)
+rebirthFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", rebirthFrame)
+
+local rebirthText = Instance.new("TextLabel", rebirthFrame)
+rebirthText.Size = UDim2.new(0.7,0,1,0)
+rebirthText.BackgroundTransparency = 1
+rebirthText.Text = "rebirth"
+rebirthText.TextColor3 = Color3.new(1,1,1)
+rebirthText.Font = Enum.Font.GothamBold
+rebirthText.TextSize = 16
+rebirthText.TextXAlignment = Enum.TextXAlignment.Left
+
+local rebirthToggle = Instance.new("TextButton", rebirthFrame)
+rebirthToggle.Size = UDim2.new(0.3,0,1,0)
+rebirthToggle.Position = UDim2.new(0.7,0,0,0)
+rebirthToggle.Text = "OFF"
+rebirthToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+rebirthToggle.TextColor3 = Color3.new(1,1,1)
+rebirthToggle.Font = Enum.Font.GothamBold
+rebirthToggle.TextSize = 14
+Instance.new("UICorner", rebirthToggle)
+
+local rebirthEnabled = false
+
+rebirthToggle.MouseButton1Click:Connect(function()
+    rebirthEnabled = not rebirthEnabled
+    rebirthToggle.Text = rebirthEnabled and "ON" or "OFF"
+    rebirthToggle.BackgroundColor3 = rebirthEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+end)
+
+--================ REBIRTH LOOP =================--
+local rebirthRemote = game:GetService("ReplicatedStorage")
+    :WaitForChild("CurRemotes")
+    :WaitForChild("DataChange_Rebirth")
+
+task.spawn(function()
+    while true do
+        if rebirthEnabled and player.Character then
+            pcall(function()
+                rebirthRemote:FireServer("rebirth")
+            end)
+            task.wait(5)
+        else
+            task.wait(0.2)
+        end
+    end
+end)
+
+--================ REMOVE EFFECTS UI =================--
+local effectFrame = Instance.new("Frame", pageSetting)
+effectFrame.Size = UDim2.new(0.9,0,0,40)
+effectFrame.Position = UDim2.new(0.05,0,0,10)
+effectFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", effectFrame)
+
+local effectLabel = Instance.new("TextLabel", effectFrame)
+effectLabel.Size = UDim2.new(0.7,0,1,0)
+effectLabel.BackgroundTransparency = 1
+effectLabel.Text = "Remove Effects"
+effectLabel.TextColor3 = Color3.new(1,1,1)
+effectLabel.Font = Enum.Font.GothamBold
+effectLabel.TextSize = 16
+effectLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local effectToggle = Instance.new("TextButton", effectFrame)
+effectToggle.Size = UDim2.new(0.3,0,1,0)
+effectToggle.Position = UDim2.new(0.7,0,0,0)
+effectToggle.Text = "OFF"
+effectToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+effectToggle.TextColor3 = Color3.new(1,1,1)
+effectToggle.Font = Enum.Font.GothamBold
+effectToggle.TextSize = 14
+Instance.new("UICorner", effectToggle)
+
+--================ EFFECTS FUNCTION =================--
+local effectEnabled = false
+
+local function removeEffectFromPart(obj)
+    if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
+        obj.Enabled = false
+    end
+end
+
+-- ใช้ DescendantAdded เพื่อปิดเอฟเฟคใหม่แบบเรียลไทม์
+workspace.DescendantAdded:Connect(function(desc)
+    if effectEnabled then
+        removeEffectFromPart(desc)
+    end
+end)
+
+effectToggle.MouseButton1Click:Connect(function()
+    effectEnabled = not effectEnabled
+    effectToggle.Text = effectEnabled and "ON" or "OFF"
+    effectToggle.BackgroundColor3 = effectEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+
+    if effectEnabled then
+        -- ปิดเอฟเฟคชิ้นส่วนทั้งหมดปัจจุบัน
+        for _, obj in pairs(workspace:GetDescendants()) do
+            removeEffectFromPart(obj)
+        end
+    else
+        -- หากต้องการเปิดเอฟเฟคคืน
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
+                obj.Enabled = true
+            end
+        end
+    end
+end)
+
+-- ================= Smooth Graphics UI =================
+local smoothFrame = Instance.new("Frame", pageSetting)
+smoothFrame.Size = UDim2.new(0.9,0,0,40)
+smoothFrame.Position = UDim2.new(0.05,0,0,60)
+smoothFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", smoothFrame)
+
+local smoothLabel = Instance.new("TextLabel", smoothFrame)
+smoothLabel.Size = UDim2.new(0.7,0,1,0)
+smoothLabel.BackgroundTransparency = 1
+smoothLabel.Text = "Smooth Graphics"
+smoothLabel.TextColor3 = Color3.new(1,1,1)
+smoothLabel.Font = Enum.Font.GothamBold
+smoothLabel.TextSize = 16
+smoothLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local smoothToggle = Instance.new("TextButton", smoothFrame)
+smoothToggle.Size = UDim2.new(0.3,0,1,0)
+smoothToggle.Position = UDim2.new(0.7,0,0,0)
+smoothToggle.Text = "OFF"
+smoothToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+smoothToggle.TextColor3 = Color3.new(1,1,1)
+smoothToggle.Font = Enum.Font.GothamBold
+smoothToggle.TextSize = 14
+Instance.new("UICorner", smoothToggle)
+
+-- ================= Smooth Graphics Functions =================
+local smoothEnabled = false
+
+local function applySmooth(part)
+    if part:IsA("BasePart") then
+        part.Material = Enum.Material.SmoothPlastic
+        part.Color = part.Color -- ใช้สีเดิม
+    end
+end
+
+-- ใช้ DescendantAdded เพื่อปรับส่วนใหม่แบบเรียลไทม์
+workspace.DescendantAdded:Connect(function(desc)
+    if smoothEnabled then
+        applySmooth(desc)
+    end
+end)
+
+-- ================= Toggle Event =================
+smoothToggle.MouseButton1Click:Connect(function()
+    smoothEnabled = not smoothEnabled
+    smoothToggle.Text = smoothEnabled and "ON" or "OFF"
+    smoothToggle.BackgroundColor3 = smoothEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+
+    if smoothEnabled then
+        -- กำหนดให้ชิ้นส่วนปัจจุบันทั้งหมดเรียบ
+        for _, part in pairs(workspace:GetDescendants()) do
+            applySmooth(part)
+        end
+    end
+end)
+
+local antiEnabled = false
+
+local antiFrame = Instance.new("Frame", pageSetting)
+antiFrame.Size = UDim2.new(0.9,0,0,40)
+antiFrame.Position = UDim2.new(0.05,0,0,110)
+antiFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", antiFrame)
+
+local antiLabel = Instance.new("TextLabel", antiFrame)
+antiLabel.Size = UDim2.new(0.7,0,1,0)
+antiLabel.BackgroundTransparency = 1
+antiLabel.Text = "Anti Disconnect"
+antiLabel.TextColor3 = Color3.new(1,1,1)
+antiLabel.Font = Enum.Font.GothamBold
+antiLabel.TextSize = 16
+antiLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local antiToggle = Instance.new("TextButton", antiFrame)
+antiToggle.Size = UDim2.new(0.3,0,1,0)
+antiToggle.Position = UDim2.new(0.7,0,0,0)
+antiToggle.Text = "OFF"
+antiToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+antiToggle.TextColor3 = Color3.new(1,1,1)
+antiToggle.Font = Enum.Font.GothamBold
+antiToggle.TextSize = 14
+Instance.new("UICorner", antiToggle)
+
+antiToggle.MouseButton1Click:Connect(function()
+    antiEnabled = not antiEnabled
+    antiToggle.Text = antiEnabled and "ON" or "OFF"
+    antiToggle.BackgroundColor3 = antiEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
+end)
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local profileTitle = Instance.new("TextLabel", pageMain)
+profileTitle.Size = UDim2.new(0,85,0,20)
+profileTitle.Position = UDim2.new(0.03,0,0.16,0)
+profileTitle.BackgroundTransparency = 1
+profileTitle.Text = "Profile"
+profileTitle.TextColor3 = Color3.fromRGB(255,255,255)
+profileTitle.Font = Enum.Font.GothamBold
+profileTitle.TextSize = 14
+profileTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+local profileFrame = Instance.new("Frame", pageMain)
+profileFrame.Size = UDim2.new(0,85,0,85)
+profileFrame.Position = UDim2.new(0.03,0,0.30,0)
+profileFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", profileFrame)
+
+local avatar = Instance.new("ImageLabel", profileFrame)
+avatar.Size = UDim2.new(0,75,0,75)
+avatar.Position = UDim2.new(0.5,-37,0.5,-37)
+avatar.BackgroundTransparency = 1
+avatar.Image = ("https://www.roblox.com/headshot-thumbnail/image?userId=%s&width=420&height=420&format=png"):format(player.UserId)
+
+local rightX = 0.38
+
+local statTitle = Instance.new("TextLabel", pageMain)
+statTitle.Size = UDim2.new(0.55,0,0,30)
+statTitle.Position = UDim2.new(rightX,0,0,20)
+statTitle.BackgroundTransparency = 1
+statTitle.Text = "Stat"
+statTitle.TextColor3 = Color3.fromRGB(255,255,255)
+statTitle.Font = Enum.Font.GothamBold
+statTitle.TextSize = 18
+statTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+local timeLabel = Instance.new("TextLabel", pageMain)
+timeLabel.Size = UDim2.new(0.55,0,0,25)
+timeLabel.Position = UDim2.new(rightX,0,0,55)
+timeLabel.BackgroundTransparency = 1
+timeLabel.Text = "Time: 0s"
+timeLabel.TextColor3 = Color3.fromRGB(255,255,255)
+timeLabel.Font = Enum.Font.Gotham
+timeLabel.TextSize = 14
+timeLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+local serverTitle = Instance.new("TextLabel", pageMain)
+serverTitle.Size = UDim2.new(0.55,0,0,20)
+serverTitle.Position = UDim2.new(rightX,0,0,80)
+serverTitle.BackgroundTransparency = 1
+serverTitle.Text = "Server"
+serverTitle.TextColor3 = Color3.fromRGB(200,200,200)
+serverTitle.Font = Enum.Font.GothamBold
+serverTitle.TextSize = 13
+serverTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+local serverBox = Instance.new("TextBox", pageMain)
+serverBox.Size = UDim2.new(0.38,0,0,40)
+serverBox.Position = UDim2.new(0.66,0,0,105)
+serverBox.AnchorPoint = Vector2.new(0.5,0)
+serverBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
+serverBox.Text = game.JobId
+serverBox.TextColor3 = Color3.fromRGB(220,220,220)
+serverBox.Font = Enum.Font.Gotham
+serverBox.TextSize = 12
+serverBox.ClearTextOnFocus = false
+serverBox.TextWrapped = true
+serverBox.TextXAlignment = Enum.TextXAlignment.Center
+serverBox.TextYAlignment = Enum.TextYAlignment.Center
+Instance.new("UICorner", serverBox)
+
+local startTime = tick()
+
+local function formatTime(sec)
+    local d = math.floor(sec / 86400)
+    sec = sec % 86400
+
+    local h = math.floor(sec / 3600)
+    sec = sec % 3600
+
+    local m = math.floor(sec / 60)
+    local s = sec % 60
+
+    if d > 0 then
+        return d.."d "..h.."h "..m.."m "..s.."s"
+    elseif h > 0 then
+        return h.."h "..m.."m "..s.."s"
+    elseif m > 0 then
+        return m.."m "..s.."s"
+    else
+        return s.."s"
+    end
+end
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        local elapsed = math.floor(tick() - startTime)
+        timeLabel.Text = "Time: "..formatTime(elapsed)
+    end
+end)
+
+local iconGui = Instance.new("ScreenGui", game.CoreGui)
+local icon = Instance.new("ImageButton", iconGui)
+icon.Size = UDim2.new(0,80,0,40)
+icon.Position = UDim2.new(0,50,0.5,-195)
+icon.BackgroundColor3 = Color3.fromRGB(30,30,30)
+icon.BackgroundTransparency = 0.1
+icon.Image = "rbxassetid://7072719338"
+icon.ScaleType = Enum.ScaleType.Fit
+Instance.new("UICorner", icon).CornerRadius = UDim.new(0,12)
+
+local gradIcon = Instance.new("UIGradient", icon)
+gradIcon.Color = gradMain.Color
+gradIcon.Rotation = 45
+
+local stroke = Instance.new("UIStroke", icon)
+stroke.Thickness = 2
+stroke.Color = Color3.fromRGB(80,80,80)
+stroke.Transparency = 0.3
+
+icon.Active = true
+icon.Draggable = true
+
+local visible = true
+local tweenInfo = TweenInfo.new(0.4,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+local savedPosition = frame.Position
+local savedSize = frame.Size
+
+icon.MouseButton1Click:Connect(function()
+    visible = not visible
+
+    local pos = icon.AbsolutePosition
+    local size = icon.AbsoluteSize
+
+    local startPos = UDim2.new(0,pos.X,0,pos.Y)
+    local startSize = UDim2.new(0,size.X,0,size.Y)
+
+    if visible then
+        mainGui.Enabled = true
+        frame.Visible = true
+        frame.Position = startPos
+        frame.Size = startSize
+
+        TweenService:Create(frame,tweenInfo,{
+            Position = savedPosition,
+            Size = savedSize
+        }):Play()
+    else
+        savedPosition = frame.Position
+        savedSize = frame.Size
+
+        local t = TweenService:Create(frame,tweenInfo,{
+            Position = startPos,
+            Size = startSize
+        })
+
+        t:Play()
+        t.Completed:Connect(function()
+            frame.Visible = false
+            mainGui.Enabled = false
+        end)
+    end
+end)
+
+btnMain.MouseButton1Click:Connect(function()
+    pageMain.Visible = true
+    pageAura.Visible = false
+    pageTeleport.Visible = false
+    pageAuto.Visible = false
+    pageSetting.Visible = false
+end)
+
+btnAura.MouseButton1Click:Connect(function()
+    pageMain.Visible = false
+    pageAura.Visible = true
+    pageTeleport.Visible = false
+    pageAuto.Visible = false
+    pageSetting.Visible = false
+end)
+
+btnTeleport.MouseButton1Click:Connect(function()
+    pageMain.Visible = false
+    pageAura.Visible = false
+    pageTeleport.Visible = true
+    pageAuto.Visible = false
+    pageSetting.Visible = false
+end)
+
+btnAuto.MouseButton1Click:Connect(function()
+    pageMain.Visible = false
+    pageAura.Visible = false
+    pageTeleport.Visible = false
+    pageAuto.Visible = true
+    pageSetting.Visible = false
+end)
+
+btnSetting.MouseButton1Click:Connect(function()
+    pageMain.Visible = false
+    pageAura.Visible = false
+    pageTeleport.Visible = false
+    pageAuto.Visible = false
+    pageSetting.Visible = true
+end)
