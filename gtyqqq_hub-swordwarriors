@@ -473,17 +473,14 @@ flyLockToggle.MouseButton1Click:Connect(function()
     end
 end)
 
---================ SMOOTH LOCK =================--
 RunService.RenderStepped:Connect(function()
     if flyEnabled and hrp and baseY then
         local currentPos = hrp.Position
 
-        -- 🔥 เป้าหมายจริง = พื้น + slider
         local goalY = baseY + high
 
         local goalPos = Vector3.new(currentPos.X, goalY, currentPos.Z)
 
-        -- 🔥 สมูท
         local newPos = currentPos:Lerp(goalPos, 0.2)
 
         hrp.AssemblyLinearVelocity = Vector3.zero
@@ -493,7 +490,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
---================ RESET =================--
 player.CharacterAdded:Connect(function()
     task.wait(1)
     updateHRP()
@@ -503,19 +499,16 @@ player.CharacterAdded:Connect(function()
     end
 end)
 
---================ MONSTER PULL UI =================--
 local pullEnabled = false
 local pullDistance = 20
 local pullRange = 150
 
--- UI Frame
 local pullFrame = Instance.new("Frame", pageTeleport)
 pullFrame.Size = UDim2.new(0.9,0,0,40)
 pullFrame.Position = UDim2.new(0.05,0,0,102)
 pullFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
 Instance.new("UICorner", pullFrame)
 
--- Label
 local pullLabel = Instance.new("TextLabel", pullFrame)
 pullLabel.Size = UDim2.new(0.7,0,1,0)
 pullLabel.BackgroundTransparency = 1
@@ -525,7 +518,6 @@ pullLabel.Font = Enum.Font.GothamBold
 pullLabel.TextSize = 16
 pullLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- Toggle
 local pullToggle = Instance.new("TextButton", pullFrame)
 pullToggle.Size = UDim2.new(0.3,0,1,0)
 pullToggle.Position = UDim2.new(0.7,0,0,0)
@@ -542,7 +534,6 @@ pullToggle.MouseButton1Click:Connect(function()
     pullToggle.BackgroundColor3 = pullEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 end)
 
--- Distance Slider UI
 local distLabel = Instance.new("TextLabel", pageTeleport)
 distLabel.Size = UDim2.new(1,0,0,25)
 distLabel.Position = UDim2.new(0,0,0,142)
@@ -578,7 +569,6 @@ distBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
 distBox.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", distBox)
 
---================ SLIDER LOGIC =================--
 local draggingDist = false
 
 local function setPullDistance(n)
@@ -588,7 +578,6 @@ local function setPullDistance(n)
 
     local rel = (n-15)/(100-15)
     distBox.Text = tostring(n)
-    -- ใช้ Tween หรือ Lerp ให้ knob และ fill ขยับสมูท
     distKnob:TweenPosition(UDim2.new(rel,0,0.5,0), "Out", "Sine", 0.1, true)
     distFill:TweenSize(UDim2.new(rel,0,1,0), "Out", "Sine", 0.1, true)
 end
@@ -628,7 +617,6 @@ end)
 
 setPullDistance(20)
 
---================ MONSTER PULL LOGIC =================--
 task.spawn(function()
     local lastUpdate = 0
     local monsters = {}
@@ -639,7 +627,6 @@ task.spawn(function()
         if pullEnabled and hrp then
             local now = tick()
 
-            -- 🔹 อัปเดตรายชื่อมอนทุก 0.5 วินาที
             if now - lastUpdate >= 0.5 then
                 lastUpdate = now
                 local newList = {}
@@ -660,12 +647,10 @@ task.spawn(function()
                 monsters = newList
             end
 
-            -- 🔥 ดึงมอน + หมุน 25 องศา
             for _, r in ipairs(monsters) do
 
                 local targetPos = (hrp.CFrame * CFrame.new(0, 0, -pullDistance)).Position
 
-                -- หันเข้าหาผู้เล่น + หมุนเพิ่ม 25°
                 local baseCFrame = CFrame.new(targetPos, hrp.Position)
                 local offset = CFrame.Angles(0, math.rad(25), 0)
 
@@ -678,7 +663,6 @@ task.spawn(function()
     end
 end)
 
---================ AUTO SKILL GUI =================--
 local autoSkillLabel = Instance.new("TextLabel", pageAuto)
 autoSkillLabel.Size = UDim2.new(1,0,0,25)
 autoSkillLabel.Position = UDim2.new(0,50,0,10)
@@ -716,7 +700,6 @@ for i, skill in ipairs(skills) do
     end)
 end
 
--- ================= COOLDOWN LOOP SLIDER =================
 local cooldownLabel = Instance.new("TextLabel", pageAuto)
 cooldownLabel.Size = UDim2.new(1,0,0,25)
 cooldownLabel.Position = UDim2.new(0,0,0,85)
@@ -752,7 +735,6 @@ cooldownBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
 cooldownBox.TextColor3 = Color3.new(102,255,178)
 Instance.new("UICorner", cooldownBox)
 
--- ================= Cooldown FUNCTION =================
 local cooldown = 0.1
 local draggingCooldown = false
 
@@ -804,7 +786,6 @@ end)
 
 setCooldown(0.1)
 
---================ AUTO SKILL (REMOTE VERSION) =================--
 local Remote = game:GetService("ReplicatedStorage")
     :WaitForChild("CurRemotes")
     :WaitForChild("SkillEvent")
@@ -824,7 +805,7 @@ task.spawn(function()
                     pcall(function()
                         Remote:FireServer(skillMap[skill])
                     end)
-                    task.wait(cooldown) -- 🎚 ใช้ slider คุม delay
+                    task.wait(cooldown)
                 end
             end
         end
@@ -832,7 +813,6 @@ task.spawn(function()
     end
 end)
 
---================ AUTO UPGRADE UI =================--
 local upgradeLabel = Instance.new("TextLabel", pageAuto)
 upgradeLabel.Size = UDim2.new(1,0,0,25)
 upgradeLabel.Position = UDim2.new(0,0,0,140)
@@ -843,7 +823,6 @@ upgradeLabel.Font = Enum.Font.GothamBold
 upgradeLabel.TextSize = 16
 upgradeLabel.TextXAlignment = Enum.TextXAlignment.Center
 
---================ FUNCTION CREATE =================--
 local function createUpgradeToggle(name, yPos)
     local frame = Instance.new("Frame", pageAuto)
     frame.Size = UDim2.new(0.9,0,0,40)
@@ -883,18 +862,15 @@ local function createUpgradeToggle(name, yPos)
     end
 end
 
---================ CREATE 4 TOGGLES =================--
 local getHP = createUpgradeToggle("HP", 170)
 local getATK = createUpgradeToggle("Attack", 220)
 local getSPD = createUpgradeToggle("Speed", 270)
 local getCRT = createUpgradeToggle("Crit", 320)
 
---================ AUTO UPGRADE LOGIC =================--
 local upgradeRemote = game:GetService("ReplicatedStorage")
     :WaitForChild("CurRemotes")
     :WaitForChild("DataChange_Points")
 
---================ POINT =================--
 local point = player.PlayerGui
     :WaitForChild("MainGui")
     :WaitForChild("MainFrame")
@@ -903,7 +879,6 @@ local point = player.PlayerGui
     :WaitForChild("New")
     :WaitForChild("data")
 
---================ GET POINT =================--
 local function getPoint()
     local val = 0
 
@@ -918,7 +893,6 @@ local function getPoint()
     return val
 end
 
---================ AUTO UPGRADE =================--
 task.spawn(function()
     while true do
 
@@ -956,7 +930,6 @@ task.spawn(function()
     end
 end)
 
---================ REBIRTH UI (APPEND MODE) =================--
 local rebirthLabel = Instance.new("TextLabel", pageAuto)
 rebirthLabel.Size = UDim2.new(1,0,0,25)
 rebirthLabel.Position = UDim2.new(0,0,0,370)
@@ -1000,7 +973,6 @@ rebirthToggle.MouseButton1Click:Connect(function()
     rebirthToggle.BackgroundColor3 = rebirthEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 end)
 
---================ REBIRTH LOOP =================--
 local rebirthRemote = game:GetService("ReplicatedStorage")
     :WaitForChild("CurRemotes")
     :WaitForChild("DataChange_Rebirth")
@@ -1018,7 +990,6 @@ task.spawn(function()
     end
 end)
 
---================ REMOVE EFFECTS UI =================--
 local effectFrame = Instance.new("Frame", pageSetting)
 effectFrame.Size = UDim2.new(0.9,0,0,40)
 effectFrame.Position = UDim2.new(0.05,0,0,10)
@@ -1044,7 +1015,6 @@ effectToggle.Font = Enum.Font.GothamBold
 effectToggle.TextSize = 14
 Instance.new("UICorner", effectToggle)
 
---================ EFFECTS FUNCTION =================--
 local effectEnabled = false
 
 local function removeEffectFromPart(obj)
@@ -1053,7 +1023,6 @@ local function removeEffectFromPart(obj)
     end
 end
 
--- ใช้ DescendantAdded เพื่อปิดเอฟเฟคใหม่แบบเรียลไทม์
 workspace.DescendantAdded:Connect(function(desc)
     if effectEnabled then
         removeEffectFromPart(desc)
@@ -1066,12 +1035,10 @@ effectToggle.MouseButton1Click:Connect(function()
     effectToggle.BackgroundColor3 = effectEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 
     if effectEnabled then
-        -- ปิดเอฟเฟคชิ้นส่วนทั้งหมดปัจจุบัน
         for _, obj in pairs(workspace:GetDescendants()) do
             removeEffectFromPart(obj)
         end
     else
-        -- หากต้องการเปิดเอฟเฟคคืน
         for _, obj in pairs(workspace:GetDescendants()) do
             if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
                 obj.Enabled = true
@@ -1080,7 +1047,6 @@ effectToggle.MouseButton1Click:Connect(function()
     end
 end)
 
--- ================= Smooth Graphics UI =================
 local smoothFrame = Instance.new("Frame", pageSetting)
 smoothFrame.Size = UDim2.new(0.9,0,0,40)
 smoothFrame.Position = UDim2.new(0.05,0,0,60)
@@ -1106,45 +1072,38 @@ smoothToggle.Font = Enum.Font.GothamBold
 smoothToggle.TextSize = 14
 Instance.new("UICorner", smoothToggle)
 
--- ================= Smooth Graphics Functions =================
 local smoothEnabled = false
 
 local function applySmooth(part)
     if part:IsA("BasePart") then
         part.Material = Enum.Material.SmoothPlastic
-        part.Color = part.Color -- ใช้สีเดิม
+        part.Color = part.Color
     end
 end
 
--- ใช้ DescendantAdded เพื่อปรับส่วนใหม่แบบเรียลไทม์
 workspace.DescendantAdded:Connect(function(desc)
     if smoothEnabled then
         applySmooth(desc)
     end
 end)
 
--- ================= Toggle Event =================
 smoothToggle.MouseButton1Click:Connect(function()
     smoothEnabled = not smoothEnabled
     smoothToggle.Text = smoothEnabled and "ON" or "OFF"
     smoothToggle.BackgroundColor3 = smoothEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 
     if smoothEnabled then
-        -- กำหนดให้ชิ้นส่วนปัจจุบันทั้งหมดเรียบ
         for _, part in pairs(workspace:GetDescendants()) do
             applySmooth(part)
         end
     end
 end)
 
---================ ANTI DISCONNECT (UI + SYSTEM) =================--
-
 local antiEnabled = false
 
---================ UI =================--
 local antiFrame = Instance.new("Frame", pageSetting)
 antiFrame.Size = UDim2.new(0.9,0,0,40)
-antiFrame.Position = UDim2.new(0.05,0,0,110) -- 🔥 เลื่อนลงมา (ถัดจาก Smooth)
+antiFrame.Position = UDim2.new(0.05,0,0,110)
 antiFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
 Instance.new("UICorner", antiFrame)
 
@@ -1173,14 +1132,9 @@ antiToggle.MouseButton1Click:Connect(function()
     antiToggle.BackgroundColor3 = antiEnabled and Color3.fromRGB(255,0,0) or Color3.fromRGB(100,100,100)
 end)
 
---================ MAIN PROFILE + STAT FINAL FIXED =================--
-
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
---================ PROFILE =================--
-
--- 🏷 Profile (อยู่สูงขึ้น + มีระยะห่างดีขึ้น)
 local profileTitle = Instance.new("TextLabel", pageMain)
 profileTitle.Size = UDim2.new(0,85,0,20)
 profileTitle.Position = UDim2.new(0.03,0,0.16,0)
@@ -1191,25 +1145,20 @@ profileTitle.Font = Enum.Font.GothamBold
 profileTitle.TextSize = 14
 profileTitle.TextXAlignment = Enum.TextXAlignment.Center
 
--- 🧱 กรอบรูป (ห่างจากคำว่า Profile มากขึ้น)
 local profileFrame = Instance.new("Frame", pageMain)
 profileFrame.Size = UDim2.new(0,85,0,85)
 profileFrame.Position = UDim2.new(0.03,0,0.30,0)
 profileFrame.BackgroundColor3 = Color3.fromRGB(50,50,50)
 Instance.new("UICorner", profileFrame)
 
--- 🧑 Avatar
 local avatar = Instance.new("ImageLabel", profileFrame)
 avatar.Size = UDim2.new(0,75,0,75)
 avatar.Position = UDim2.new(0.5,-37,0.5,-37)
 avatar.BackgroundTransparency = 1
 avatar.Image = ("https://www.roblox.com/headshot-thumbnail/image?userId=%s&width=420&height=420&format=png"):format(player.UserId)
 
---================ RIGHT SIDE =================--
-
 local rightX = 0.38
 
--- 🧠 STAT TITLE
 local statTitle = Instance.new("TextLabel", pageMain)
 statTitle.Size = UDim2.new(0.55,0,0,30)
 statTitle.Position = UDim2.new(rightX,0,0,20)
@@ -1220,7 +1169,6 @@ statTitle.Font = Enum.Font.GothamBold
 statTitle.TextSize = 18
 statTitle.TextXAlignment = Enum.TextXAlignment.Center
 
--- ⏱ TIME
 local timeLabel = Instance.new("TextLabel", pageMain)
 timeLabel.Size = UDim2.new(0.55,0,0,25)
 timeLabel.Position = UDim2.new(rightX,0,0,55)
@@ -1231,7 +1179,6 @@ timeLabel.Font = Enum.Font.Gotham
 timeLabel.TextSize = 14
 timeLabel.TextXAlignment = Enum.TextXAlignment.Center
 
--- 🏷 SERVER TEXT
 local serverTitle = Instance.new("TextLabel", pageMain)
 serverTitle.Size = UDim2.new(0.55,0,0,20)
 serverTitle.Position = UDim2.new(rightX,0,0,80)
@@ -1242,11 +1189,10 @@ serverTitle.Font = Enum.Font.GothamBold
 serverTitle.TextSize = 13
 serverTitle.TextXAlignment = Enum.TextXAlignment.Center
 
--- 📋 SERVER URL (กลางจริงใต้ Server)
 local serverBox = Instance.new("TextBox", pageMain)
 serverBox.Size = UDim2.new(0.38,0,0,40)
 serverBox.Position = UDim2.new(0.66,0,0,105)
-serverBox.AnchorPoint = Vector2.new(0.5,0) -- 🔥 FIX กึ่งกลางจริง
+serverBox.AnchorPoint = Vector2.new(0.5,0)
 serverBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
 serverBox.Text = game.JobId
 serverBox.TextColor3 = Color3.fromRGB(220,220,220)
@@ -1257,8 +1203,6 @@ serverBox.TextWrapped = true
 serverBox.TextXAlignment = Enum.TextXAlignment.Center
 serverBox.TextYAlignment = Enum.TextYAlignment.Center
 Instance.new("UICorner", serverBox)
-
---================ TIME SYSTEM =================--
 
 local startTime = tick()
 
@@ -1291,7 +1235,6 @@ task.spawn(function()
     end
 end)
 
---================ ICON =================--
 local iconGui = Instance.new("ScreenGui", game.CoreGui)
 local icon = Instance.new("ImageButton", iconGui)
 icon.Size = UDim2.new(0,80,0,40)
@@ -1355,8 +1298,6 @@ icon.MouseButton1Click:Connect(function()
     end
 end)
 
---================ FIX MENU =================--
-
 btnMain.MouseButton1Click:Connect(function()
     pageMain.Visible = true
     pageAura.Visible = false
@@ -1396,5 +1337,3 @@ btnSetting.MouseButton1Click:Connect(function()
     pageAuto.Visible = false
     pageSetting.Visible = true
 end)
-
-print("🌌 Abyss hub finish 🌌")
