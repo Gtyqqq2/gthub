@@ -1124,7 +1124,7 @@ effectToggle.MouseButton1Click:Connect(function()
     end
 end)
 
--- ================= Smooth Graphics UI =================
+--================= Smooth Graphics UI =================--
 local smoothFrame = Instance.new("Frame", pageSetting)
 smoothFrame.Size = UDim2.new(0.9,0,0,40)
 smoothFrame.Position = UDim2.new(0.05,0,0,60)
@@ -1150,7 +1150,7 @@ smoothToggle.Font = Enum.Font.GothamBold
 smoothToggle.TextSize = 14
 Instance.new("UICorner", smoothToggle)
 
--- ================= Smooth Graphics Functions =================
+--================= Smooth Graphics Functions =================--
 local smoothEnabled = false
 
 local function applySmooth(part)
